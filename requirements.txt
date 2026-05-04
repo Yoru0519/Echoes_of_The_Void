@@ -5,3 +5,4 @@ Flask-WTF==1.1.1
 Werkzeug==2.3.7
 markdown==3.5.1
 python-dotenv==1.0.0
+gunicorn==21.2.0
