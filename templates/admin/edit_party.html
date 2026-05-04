@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}{% if member %}Редактировать{% else %}Добавить{% endif %} игрока{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h4 class="cinzel mb-0 text-dark">{% if member %}Редактирование{% else %}Новый{% endif %} игрок</h4>
+            </div>
+            <div class="card-body bg-white">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="player_name" class="form-label">Имя игрока</label>
+                        <input type="text" class="form-control" id="player_name" name="player_name"
+                               value="{{ member.player_name if member else '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="char_name" class="form-label">Имя персонажа *</label>
+                        <input type="text" class="form-control" id="char_name" name="char_name" 
+                               value="{{ member.char_name if member else '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="char_class" class="form-label">Класс</label>
+                        <input type="text" class="form-control" id="char_class" name="char_class"
+                               value="{{ member.char_class if member else '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="race" class="form-label">Раса</label>
+                        <input type="text" class="form-control" id="race" name="race"
+                               value="{{ member.race if member else '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="level" class="form-label">Уровень</label>
+                        <input type="number" class="form-control" id="level" name="level"
+                               value="{{ member.level if member else 1 }}" min="1" max="20">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание персонажа</label>
+                        <textarea class="form-control" id="description" name="description" rows="4">{{ member.description if member else '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="private_notes" class="form-label">Личные заметки (только для мастера)</label>
+                        <textarea class="form-control" id="private_notes" name="private_notes" rows="3">{{ member.private_notes if member else '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Портрет (круглое фото)</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/jpeg,image/png,image/webp">
+                        <div class="form-text">Рекомендуемый размер: 400x400 или 500x500 px (квадратное фото). Поддерживаются JPG, PNG, WEBP</div>
+                    </div>
+                    
+                    {% if member and member.portrait_url and member.portrait_url != '/static/images/placeholders/player.jpg' %}
+                    <div class="mb-3">
+                        <label class="form-label">Текущее фото</label>
+                        <div>
+                            <img src="{{ member.portrait_url }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 2px solid #ffc107;">
+                            <p class="small text-muted mt-1">Текущее фото. Загрузите новое, чтобы заменить.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Сохранить
+                        </button>
+                        <a href="{{ url_for('admin_party') }}" class="btn btn-secondary">
+                            Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

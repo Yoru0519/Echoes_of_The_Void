@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Мир Альдерии{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="cinzel text-dark">Мир Альдерии</h1>
+        <p class="lead text-secondary">История, политика и тайны королевства</p>
+        <hr class="border-warning">
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 col-lg-8">
+        <div class="accordion" id="worldAccordion">
+            {% for article in articles %}
+            <div class="accordion-item border-0 shadow-sm mb-3">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed bg-white text-dark" type="button" 
+                            data-bs-toggle="collapse" data-bs-target="#collapse{{ article.id }}">
+                        <span class="cinzel">{{ article.title }}</span>
+                        {% if article.is_spoiler %}
+                        <span class="badge bg-danger ms-2">⚠️ Спойлер</span>
+                        {% endif %}
+                    </button>
+                </h2>
+                <div id="collapse{{ article.id }}" class="accordion-collapse collapse" 
+                    data-bs-parent="#worldAccordion">
+                    <div class="accordion-body bg-white">
+                        <!-- ЗДЕСЬ БЫЛО {{ article.content|safe }} -->
+                        <!-- А ТЕПЕРЬ ЗДЕСЬ ЭТА СТРОКА: -->
+                        <div class="article-content">
+                            {{ article.content|markdown|safe }}
+                        </div>
+                        {% if article.is_spoiler %}
+                        <div class="alert alert-warning mt-3">
+                            <i class="bi bi-eye-slash-fill"></i> 
+                            <strong>Внимание!</strong> Этот текст содержит спойлеры.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="col-12 col-lg-4">
+        <!-- Хронология -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="mb-0 text-dark cinzel"><i class="bi bi-hourglass-split"></i> Хронология</h5>
+            </div>
+            <div class="card-body bg-white p-3">
+                <div class="timeline-modern">
+                    <div class="timeline-item mb-3">
+                        <div class="timeline-badge bg-warning text-dark">500 лет назад</div>
+                        <div class="timeline-content bg-light p-2 rounded">
+                            <p class="text-dark mb-0 small"><strong>Основание королевства Альдерия</strong></p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item mb-3">
+                        <div class="timeline-badge bg-warning text-dark">100 лет назад</div>
+                        <div class="timeline-content bg-light p-2 rounded">
+                            <p class="text-dark mb-0 small"><strong>Начало конфликта с Теократическим Княжеством Элион</strong></p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item mb-3">
+                        <div class="timeline-badge bg-warning text-dark">50 лет назад</div>
+                        <div class="timeline-content bg-light p-2 rounded">
+                            <p class="text-dark mb-0 small"><strong>Король Дэриан II издаёт «Указ Чести»</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item mb-3">
+                        <div class="timeline-badge bg-warning text-dark">20 лет назад</div>
+                        <div class="timeline-content bg-light p-2 rounded">
+                            <p class="text-dark mb-0 small"><strong>Окончание войны с Элион</strong></p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item mb-3">
+                        <div class="timeline-badge bg-warning text-dark">15 лет назад</div>
+                        <div class="timeline-content bg-light p-2 rounded">
+                            <p class="text-dark mb-0 small"><strong>Трагедия в Каменном Лоно</strong></p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-badge bg-danger text-white">Настоящее время</div>
+                        <div class="timeline-content bg-light p-2 rounded">
+                            <p class="text-dark mb-0 small"><strong>Кампания "Эхо Пустоты"</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.timeline-modern {
+    position: relative;
+    padding-left: 20px;
+}
+.timeline-modern::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #ffc107, #dc3545);
+}
+.timeline-item {
+    position: relative;
+}
+.timeline-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 15px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+.accordion-button:not(.collapsed) {
+    background-color: #ffc107;
+    color: #000;
+}
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: #ffc107;
+}
+
+/* Стили для форматирования текста статей */
+.article-content {
+    font-family: 'Roboto Slab', serif;
+    line-height: 1.8;
+    font-size: 1rem;
+    color: #212529;
+}
+
+.article-content p {
+    margin-bottom: 1.2rem;
+    text-indent: 2em;  /* Красная строка */
+}
+
+.article-content h1 {
+    font-size: 1.8rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    font-family: 'Cinzel', serif;
+    text-indent: 0;
+}
+
+.article-content h2 {
+    font-size: 1.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.8rem;
+    font-family: 'Cinzel', serif;
+    text-indent: 0;
+}
+
+.article-content h3 {
+    font-size: 1.2rem;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-family: 'Cinzel', serif;
+    text-indent: 0;
+}
+
+.article-content ul, .article-content ol {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.article-content li {
+    margin-bottom: 0.3rem;
+}
+
+.article-content blockquote {
+    border-left: 4px solid #ffc107;
+    padding-left: 1rem;
+    margin: 1rem 0;
+    font-style: italic;
+    color: #6c757d;
+}
+
+.article-content hr {
+    margin: 1.5rem 0;
+    border-color: #dee2e6;
+}
+
+.article-content strong {
+    color: #dc3545;
+}
+
+.article-content img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+</style>
+{% endblock %}

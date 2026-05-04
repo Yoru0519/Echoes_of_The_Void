@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Панель управления{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="cinzel text-shadow">Панель управления</h1>
+        <p class="lead">Добро пожаловать, Мастер!</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card bg-dark border-warning text-center">
+            <div class="card-body">
+                <i class="bi bi-people display-1"></i>
+                <h3>{{ npc_count }}</h3>
+                <p>Персонажей</p>
+                <a href="{{ url_for('admin_npcs') }}" class="btn btn-outline-warning">Управлять</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-dark border-warning text-center">
+            <div class="card-body">
+                <i class="bi bi-map display-1"></i>
+                <h3>{{ location_count }}</h3>
+                <p>Локаций</p>
+                <a href="{{ url_for('admin_locations') }}" class="btn btn-outline-warning">Управлять</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-dark border-warning text-center">
+            <div class="card-body">
+                <i class="bi bi-book display-1"></i>
+                <h3>{{ article_count }}</h3>
+                <p>Статей</p>
+                <a href="{{ url_for('admin_articles') }}" class="btn btn-outline-warning">Управлять</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-dark border-warning text-center">
+            <div class="card-body">
+                <i class="bi bi-person-badge display-1"></i>
+                <h3>{{ party_count }}</h3>
+                <p>Игроков</p>
+                <a href="{{ url_for('admin_party') }}" class="btn btn-outline-warning">Управлять</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card bg-dark border-info">
+    <div class="card-header">
+        <h5 class="cinzel">Быстрые действия</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <a href="{{ url_for('add_npc') }}" class="btn btn-outline-success w-100 mb-2">
+                    <i class="bi bi-plus-circle"></i> Добавить NPC
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('add_location') }}" class="btn btn-outline-success w-100 mb-2">
+                    <i class="bi bi-plus-circle"></i> Добавить локацию
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('add_article') }}" class="btn btn-outline-success w-100 mb-2">
+                    <i class="bi bi-plus-circle"></i> Добавить статью
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('add_party_member') }}" class="btn btn-outline-success w-100 mb-2">
+                    <i class="bi bi-plus-circle"></i> Добавить игрока
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card bg-dark border-warning text-center">
+            <div class="card-body">
+                <i class="bi bi-images display-1"></i>
+                <h3>{{ image_count|default(0) }}</h3>
+                <p>Изображений</p>
+                <a href="{{ url_for('admin_gallery') }}" class="btn btn-outline-warning">Управлять</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

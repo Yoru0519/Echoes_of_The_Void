@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}{% if npc %}Редактировать{% else %}Добавить{% endif %} NPC{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h4 class="cinzel mb-0 text-dark">{% if npc %}Редактирование{% else %}Новый{% endif %} персонаж</h4>
+            </div>
+            <div class="card-body bg-white">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Имя *</label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ npc.name if npc else '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Титул</label>
+                        <input type="text" class="form-control" id="title" name="title"
+                               value="{{ npc.title if npc else '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="race" class="form-label">Раса</label>
+                        <input type="text" class="form-control" id="race" name="race"
+                               value="{{ npc.race if npc else '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Категория</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="ally" {% if npc and npc.category == 'ally' %}selected{% endif %}>Союзник</option>
+                            <option value="antagonist" {% if npc and npc.category == 'antagonist' %}selected{% endif %}>Антагонист</option>
+                            <option value="neutral" {% if npc and npc.category == 'neutral' %}selected{% endif %}>Нейтральный</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Статус</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="alive" {% if npc and npc.status == 'alive' %}selected{% endif %}>Жив</option>
+                            <option value="dead" {% if npc and npc.status == 'dead' %}selected{% endif %}>Мёртв</option>
+                            <option value="unknown" {% if npc and npc.status == 'unknown' %}selected{% endif %}>Неизвестно</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Краткое описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ npc.description if npc else '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="full_info" class="form-label">Полная информация</label>
+                        <textarea class="form-control" id="full_info" name="full_info" rows="6">{{ npc.full_info if npc else '' }}</textarea>
+                        <div class="form-text">Можно использовать HTML теги</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Портрет (круглое фото)</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/jpeg,image/png,image/webp">
+                        <div class="form-text">Рекомендуемый размер: 400x400 или 500x500 px (квадратное фото). Поддерживаются JPG, PNG, WEBP</div>
+                    </div>
+                    
+                    {% if npc and npc.portrait_url and npc.portrait_url != '/static/images/placeholders/npc.jpg' %}
+                    <div class="mb-3">
+                        <label class="form-label">Текущее фото</label>
+                        <div>
+                            <img src="{{ npc.portrait_url }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 2px solid #ffc107;">
+                            <p class="small text-muted mt-1">Текущее фото. Загрузите новое, чтобы заменить.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Сохранить
+                        </button>
+                        <a href="{{ url_for('admin_npcs') }}" class="btn btn-secondary">
+                            Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

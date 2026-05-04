@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Управление статьями{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="cinzel text-dark">Управление статьями</h1>
+    <a href="{{ url_for('add_article') }}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Добавить статью
+    </a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0 text-dark"><i class="bi bi-info-circle"></i> Как работает сортировка</h5>
+    </div>
+    <div class="card-body bg-white">
+        <p class="text-dark mb-0">
+            <i class="bi bi-arrow-right text-warning"></i> 
+            <strong>Порядок сортировки:</strong> чем меньше число, тем выше статья в списке.<br>
+            <i class="bi bi-arrow-right text-warning"></i> 
+            Статьи с одинаковым порядком сортируются по дате создания.<br>
+            <i class="bi bi-arrow-right text-warning"></i> 
+            Вы можете менять порядок в любой момент - данные не теряются.
+        </p>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Заголовок</th>
+                <th>Категория</th>
+                <th>Порядок</th>
+                <th>Спойлер</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for article in articles|sort(attribute='sort_order') %}
+            <tr>
+                <td>{{ article.id }}</td>
+                <td>
+                    <strong>{{ article.title }}</strong>
+                    {% if article.sort_order == 0 %}
+                    <span class="badge bg-info ms-2">В начале</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge {% if article.category == 'world' %}bg-primary{% elif article.category == 'rule' %}bg-success{% elif article.category == 'pantheon' %}bg-info{% else %}bg-secondary{% endif %}">
+                        {% if article.category == 'world' %}📖 Мир
+                        {% elif article.category == 'rule' %}📜 Правила
+                        {% elif article.category == 'pantheon' %}⛪ Пантеон
+                        {% else %}📄 Другое{% endif %}
+                    </span>
+                </td>
+                <td style="width: 150px;">
+                    <form method="POST" action="{{ url_for('update_article_order', id=article.id) }}" class="d-flex gap-2">
+                        <input type="number" name="sort_order" value="{{ article.sort_order }}" 
+                                style="width: 70px;" class="form-control form-control-sm" 
+                                min="0" max="100" step="1">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-save"></i>
+                        </button>
+                    </form>
+                </td>
+                <td>
+                    {% if article.is_spoiler %}
+                    <span class="badge bg-danger">⚠️ Спойлер</span>
+                    {% else %}
+                    <span class="badge bg-success">Нет</span>
+                    {% endif %}
+                </td>
+                <td style="width: 120px;">
+                    <a href="{{ url_for('edit_article', id=article.id) }}" class="btn btn-sm btn-warning">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{{ url_for('delete_article', id=article.id) }}" class="btn btn-sm btn-danger"
+                        onclick="return confirm('Удалить статью «{{ article.title }}»? Это действие нельзя отменить.')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if not articles %}
+<div class="alert alert-info text-center">
+    <i class="bi bi-journal-bookmark-fill fs-1"></i>
+    <h5>Статей пока нет</h5>
+    <p>Нажмите кнопку "Добавить статью", чтобы создать первую статью.</p>
+</div>
+{% endif %}
+
+<div class="mt-4 p-3 bg-light rounded">
+    <h6 class="cinzel text-dark"><i class="bi bi-tip"></i> Советы по сортировке:</h6>
+    <ul class="text-dark small mb-0">
+        <li>Статья с порядком <strong>0</strong> будет самой первой</li>
+        <li>Статья с порядком <strong>10</strong> будет после статьи с порядком 5</li>
+        <li>Вы можете использовать любые числа от 0 до 100</li>
+        <li>Рекомендуется использовать шаг 10 (0, 10, 20, 30...) - так легче вставлять новые статьи между существующими</li>
+    </ul>
+</div>
+{% endblock %}

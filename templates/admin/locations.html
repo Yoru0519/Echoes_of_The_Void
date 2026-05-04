@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Управление локациями{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="cinzel text-shadow">Управление локациями</h1>
+    <a href="{{ url_for('add_location') }}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Добавить локацию
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Регион</th>
+                <th>Описание</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for location in locations %}
+            <tr>
+                <td>{{ location.id }}</td>
+                <td>{{ location.name }}</td>
+                <td>{{ location.region }}</td>
+                <td>{{ location.description[:100] }}...</td>
+                <td>
+                    <a href="{{ url_for('edit_location', id=location.id) }}" class="btn btn-sm btn-warning">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{{ url_for('delete_location', id=location.id) }}" class="btn btn-sm btn-danger"
+                        onclick="return confirm('Удалить {{ location.name }}?')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

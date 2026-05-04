@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Управление галереей{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="cinzel text-dark">Управление галереей</h1>
+    <a href="{{ url_for('add_gallery_image') }}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Добавить изображение
+    </a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0 text-dark"><i class="bi bi-info-circle"></i> Инструкция</h5>
+    </div>
+    <div class="card-body bg-white">
+        <p class="text-dark mb-0">
+            <i class="bi bi-arrow-right"></i> Загружайте изображения в форматах PNG, JPG, JPEG, GIF, WEBP.<br>
+            <i class="bi bi-arrow-right"></i> Рекомендуемый размер: от 800x600 пикселей.<br>
+            <i class="bi bi-arrow-right"></i> Изображения автоматически сохраняются в папку <code>static/uploads/</code>.
+        </p>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Превью</th>
+                <th>Название</th>
+                <th>Категория</th>
+                <th>Описание</th>
+                <th>Порядок</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for image in images %}
+            <tr>
+                <td>{{ image.id }}</td>
+                <td>>
+                    <img src="{{ url_for('static', filename='uploads/' + image.image_filename) }}" 
+                        style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                </td>
+                <td>{{ image.title }}</td>
+                <td>>
+                    <span class="badge bg-secondary">
+                        {% if image.category == 'map' %}Карта
+                        {% elif image.category == 'art' %}Арт
+                        {% elif image.category == 'npc' %}NPC
+                        {% elif image.category == 'location' %}Локация
+                        {% else %}Другое{% endif %}
+                    </span>
+                </td>
+                <td>{{ image.description[:50] }}{% if image.description|length > 50 %}...{% endif %}</td>
+                <td>{{ image.sort_order }}</td>
+                <td>>
+                    <a href="{{ url_for('edit_gallery_image', id=image.id) }}" class="btn btn-sm btn-warning">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{{ url_for('delete_gallery_image', id=image.id) }}" class="btn btn-sm btn-danger"
+                        onclick="return confirm('Удалить изображение {{ image.title }}?')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if not images %}
+<div class="alert alert-info text-center">
+    <i class="bi bi-images fs-1"></i>
+    <h5>Галерея пуста</h5>
+    <p>Нажмите кнопку "Добавить изображение" чтобы начать.</p>
+</div>
+{% endif %}
+{% endblock %}

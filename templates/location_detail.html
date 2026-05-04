@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}{{ location.name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('locations') }}">Локации</a></li>
+                <li class="breadcrumb-item active">{{ location.name }}</li>
+            </ol>
+        </nav>
+        <h1 class="cinzel text-shadow">{{ location.name }}</h1>
+        <p class="lead">{{ location.region }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card bg-light border-secondary mb-4">
+            <div class="card-body">
+                <h5 class="card-title text-dark">Описание</h5>
+                <p class="card-text">{{ location.description }}</p>
+                
+                <h5 class="card-title text-dark mt-4">Опасности</h5>
+                <p class="card-text text-danger">{{ location.dangers }}</p>
+                
+                {% if location.quests %}
+                <h5 class="card-title text-dark mt-4">Связанные квесты</h5>
+                <div class="alert alert-info">
+                    {{ location.quests|safe }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card bg-light border-secondary">
+            <div class="card-body">
+                <h5 class="card-title text-dark">Информация</h5>
+                <ul class="list-unstyled">
+                    <li><strong>Регион:</strong> {{ location.region }}</li>
+                    <li><strong>Статус:</strong> <span class="badge bg-warning">Исследуется</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}{% if location %}Редактировать{% else %}Добавить{% endif %} локацию{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h4 class="cinzel mb-0 text-dark">{% if location %}Редактирование{% else %}Новая{% endif %} локация</h4>
+            </div>
+            <div class="card-body bg-white">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Название *</label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                                value="{{ location.name if location else '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="region" class="form-label">Регион</label>
+                        <input type="text" class="form-control" id="region" name="region"
+                                value="{{ location.region if location else '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="4">{{ location.description if location else '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="dangers" class="form-label">Опасности</label>
+                        <textarea class="form-control" id="dangers" name="dangers" rows="3">{{ location.dangers if location else '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="quests" class="form-label">Связанные квесты</label>
+                        <textarea class="form-control" id="quests" name="quests" rows="3">{{ location.quests if location else '' }}</textarea>
+                        <div class="form-text">Можно использовать HTML теги для форматирования</div>
+                    </div>
+
+                    <!-- ========== КООРДИНАТЫ ДЛЯ КАРТЫ (ДОБАВЬТЕ ЭТОТ БЛОК) ========== -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="map_x" class="form-label">Позиция X на карте (0-100%)</label>
+                            <input type="number" class="form-control" id="map_x" name="map_x" 
+                                    value="{{ location.map_x if location and location.map_x else 50 }}" 
+                                    step="1" min="0" max="100">
+                            <div class="form-text">0% = левый край, 100% = правый край</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="map_y" class="form-label">Позиция Y на карте (0-100%)</label>
+                            <input type="number" class="form-control" id="map_y" name="map_y" 
+                                    value="{{ location.map_y if location and location.map_y else 50 }}" 
+                                    step="1" min="0" max="100">
+                            <div class="form-text">0% = верхний край, 100% = нижний край</div>
+                        </div>
+                    </div>
+                    <!-- ========== КОНЕЦ БЛОКА КООРДИНАТ ========== -->
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Сохранить
+                        </button>
+                        <a href="{{ url_for('admin_locations') }}" class="btn btn-secondary">
+                            Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

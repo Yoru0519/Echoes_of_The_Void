@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block title %}Команда{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="cinzel text-dark">Герои Альдерии</h1>
+        <p class="lead text-secondary">Наша доблестная команда</p>
+        <hr class="border-warning">
+    </div>
+</div>
+
+<style>
+.party-card {
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    max-width: 100%;
+}
+
+.party-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+/* Левая колонка с фото - БЕЛЫЙ ФОН */
+.party-image-col {
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    max-height: 280px;
+}
+
+/* Фото */
+.party-full-height-img {
+    width: 100%;
+    height: auto;
+    max-height: 280px;
+    object-fit: contain;
+    object-position: center;
+    background: #f8f9fa;
+}
+
+/* Плейсхолдер - светлый */
+.party-full-height-placeholder {
+    width: 100%;
+    height: 280px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+}
+
+.party-full-height-placeholder i {
+    font-size: 60px;
+}
+
+/* Правая колонка с текстом */
+.party-card .col-8 {
+    display: flex;
+    flex-direction: column;
+}
+
+.party-card .card-body {
+    flex: 1;
+    padding: 10px;
+}
+
+.party-card .card-header {
+    padding: 8px 10px;
+}
+
+.party-card .card-footer {
+    padding: 8px 10px;
+}
+
+/* Стили для увеличенного изображения с анимацией */
+.image-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0);
+    z-index: 9999;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+.image-modal.show {
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+.image-modal img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    opacity: 0;
+    transform: scale(0.7);
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
+
+.image-modal.show img {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.image-modal .close-modal {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s ease, color 0.2s ease;
+    opacity: 0;
+    transform: rotate(-90deg);
+}
+
+.image-modal.show .close-modal {
+    opacity: 1;
+    transform: rotate(0deg);
+    transition-delay: 0.1s;
+}
+
+.image-modal .close-modal:hover {
+    color: #ffc107;
+    transform: rotate(90deg);
+}
+
+/* Анимация пульсации для портрета при наведении */
+@keyframes gentlePulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(255, 193, 7, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+    }
+}
+
+.clickable-portrait {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.clickable-portrait:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
+    animation: gentlePulse 1s infinite;
+}
+
+/* Адаптация */
+@media (max-width: 768px) {
+    .party-image-col {
+        max-height: 220px;
+    }
+    .party-full-height-img {
+        max-height: 220px;
+    }
+    .party-full-height-placeholder {
+        height: 220px;
+    }
+}
+</style>
+
+<div class="row">
+    {% for member in members %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 shadow-sm border-0 party-card">
+            <div class="row g-0 h-100">
+                <!-- Левая часть - фото -->
+                <div class="col-4 party-image-col">
+                    {% if member.portrait_url and member.portrait_url != '/static/images/placeholders/player.jpg' %}
+                        <img src="{{ member.portrait_url }}" alt="{{ member.char_name }}" 
+                            class="party-full-height-img">
+                    {% else %}
+                        <div class="party-full-height-placeholder">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Правая часть - информация -->
+                <div class="col-8">
+                    <div class="card-header bg-white border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 cinzel text-dark">{{ member.char_name }}</h6>
+                            <span class="badge bg-primary">Ур. {{ member.level }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="text-warning mb-1 small">{{ member.char_class }}</h6>
+                        <p class="text-secondary small mb-1">{{ member.race }}</p>
+                        <p class="text-dark small mb-1">
+                            {% if member.description %}
+                                {{ member.description[:80] }}{% if member.description|length > 80 %}...{% endif %}
+                            {% else %}
+                                Описание не добавлено
+                            {% endif %}
+                        </p>
+                        <div class="mt-1">
+                            <span class="badge bg-secondary small">
+                                <i class="bi bi-person"></i> {{ member.player_name or 'Игрок' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-top">
+                        <button type="button" class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#partyModal{{ member.id }}">
+                            <i class="bi bi-info-circle"></i> Подробнее
+                        </button>
+                        {% if current_user.is_authenticated %}
+                        <div class="mt-1">
+                            <a href="{{ url_for('edit_party_member', id=member.id) }}" class="btn btn-sm btn-warning w-100">
+                                <i class="bi bi-pencil"></i> Ред.
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
+    <div class="modal fade" id="partyModal{{ member.id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white border-warning">
+                    <h5 class="modal-title cinzel">{{ member.char_name }}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            {% if member.portrait_url and member.portrait_url != '/static/images/placeholders/player.jpg' %}
+                                <img src="{{ member.portrait_url }}" alt="{{ member.char_name }}" 
+                                    class="player-modal-portrait"
+                                    style="width: 100%; max-width: 180px; height: auto; border-radius: 8px; border: 2px solid #ffc107; background: #f8f9fa;">
+                            {% else %}
+                                <div style="width: 100%; max-width: 180px; height: 240px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto; border: 2px solid #ffc107;">
+                                    <i class="bi bi-person-fill" style="font-size: 60px; color: #adb5bd;"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <div class="mb-2">
+                                <h6 class="text-warning small"><i class="bi bi-person-badge"></i> Игрок</h6>
+                                <p class="text-dark small">{{ member.player_name or 'Не указан' }}</p>
+                            </div>
+                            <div class="mb-2">
+                                <h6 class="text-warning small"><i class="bi bi-sword"></i> Класс</h6>
+                                <p class="text-dark small">{{ member.char_class or 'Не указан' }}</p>
+                            </div>
+                            <div class="mb-2">
+                                <h6 class="text-warning small"><i class="bi bi-people"></i> Раса</h6>
+                                <p class="text-dark small">{{ member.race or 'Не указана' }}</p>
+                            </div>
+                            <div class="mb-2">
+                                <h6 class="text-warning small"><i class="bi bi-graph-up"></i> Уровень</h6>
+                                <p class="text-dark small">{{ member.level }}</p>
+                            </div>
+                            <div class="mb-2">
+                                <h6 class="text-warning small"><i class="bi bi-file-text"></i> Описание</h6>
+                                <p class="text-dark small">{{ member.description or 'Описание не добавлено' }}</p>
+                            </div>
+                            {% if member.private_notes %}
+                            <div class="mb-2">
+                                <h6 class="text-info small"><i class="bi bi-journal-bookmark-fill"></i> Личные заметки</h6>
+                                <div class="bg-light p-2 rounded">
+                                    <p class="text-dark small mb-0">{{ member.private_notes }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not members %}
+<div class="alert alert-info text-center">
+    <i class="bi bi-people fs-1"></i>
+    <h5>Команда собирается</h5>
+    <p>Мастер кампании скоро добавит информацию об игроках.</p>
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('add_party_member') }}" class="btn btn-warning mt-2">Добавить игрока</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if current_user.is_authenticated %}
+<div class="position-fixed bottom-0 end-0 m-4" style="z-index: 1000;">
+    <a href="{{ url_for('add_party_member') }}" class="btn btn-warning btn-lg rounded-circle shadow-lg">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+// Увеличение портрета с анимацией
+function enlargeImage(src, alt) {
+    console.log('enlargeImage вызван', src, alt); // Для отладки
+    
+    // Удаляем старый модал, если есть
+    var existingModal = document.getElementById('imageModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Создаем элементы
+    var modal = document.createElement('div');
+    modal.className = 'image-modal';
+    modal.id = 'imageModal';
+    
+    var closeBtn = document.createElement('div');
+    closeBtn.className = 'close-modal';
+    closeBtn.innerHTML = '&times;';
+    
+    var img = document.createElement('img');
+    img.src = src;
+    img.alt = alt;
+    
+    // Собираем модал
+    modal.appendChild(closeBtn);
+    modal.appendChild(img);
+    document.body.appendChild(modal);
+    
+    // Принудительно показываем модал
+    modal.style.display = 'flex';
+    
+    // Добавляем класс для анимации с небольшой задержкой
+    setTimeout(function() {
+        modal.classList.add('show');
+    }, 10);
+    
+    // Закрытие при клике на фон или крестик
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal || e.target === closeBtn) {
+            modal.classList.remove('show');
+            setTimeout(function() {
+                if (modal.parentNode) modal.remove();
+            }, 300);
+        }
+    });
+    
+    // Закрытие по Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var openModal = document.getElementById('imageModal');
+            if (openModal) {
+                openModal.classList.remove('show');
+                setTimeout(function() {
+                    if (openModal.parentNode) openModal.remove();
+                }, 300);
+            }
+        }
+    });
+}
+
+// Обработчики для портретов в модальных окнах
+document.addEventListener('DOMContentLoaded', function() {
+    // Назначаем обработчики для всех модальных окон при их открытии
+    var modals = document.querySelectorAll('.modal');
+    modals.forEach(function(modal) {
+        modal.addEventListener('shown.bs.modal', function() {
+            var portrait = modal.querySelector('.player-modal-portrait');
+            if (portrait) {
+                portrait.classList.add('clickable-portrait');
+                portrait.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    enlargeImage(this.src, this.alt);
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

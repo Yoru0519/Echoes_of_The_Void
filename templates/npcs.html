@@ -1,0 +1,548 @@
+{% extends "base.html" %}
+
+{% block title %}Персонажи{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="cinzel text-dark">Персонажи Альдерии</h1>
+        <p class="lead text-secondary">Союзники, враги и таинственные незнакомцы</p>
+        <hr class="border-warning">
+    </div>
+</div>
+
+<style>
+.npc-card-container {
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    max-width: 100%;
+}
+
+.npc-card-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.npc-image-col {
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    max-height: 280px;
+}
+
+.npc-full-height-img {
+    width: 100%;
+    height: auto;
+    max-height: 280px;
+    object-fit: contain;
+    object-position: center;
+    background: #f8f9fa;
+}
+
+.npc-full-height-placeholder {
+    width: 100%;
+    height: 280px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+}
+
+.npc-full-height-placeholder i {
+    font-size: 60px;
+}
+
+.npc-card-container .col-8 {
+    display: flex;
+    flex-direction: column;
+}
+
+.npc-card-container .card-body {
+    flex: 1;
+    padding: 10px;
+}
+
+.npc-card-container .card-header {
+    padding: 8px 10px;
+}
+
+.npc-card-container .card-footer {
+    padding: 8px 10px;
+}
+
+@media (max-width: 768px) {
+    .npc-image-col {
+        max-height: 220px;
+    }
+    .npc-full-height-img {
+        max-height: 220px;
+    }
+    .npc-full-height-placeholder {
+        height: 220px;
+    }
+}
+
+/* Стили для увеличенного изображения с анимацией */
+.image-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0);
+    z-index: 9999;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+.image-modal.show {
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+.image-modal img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    opacity: 0;
+    transform: scale(0.7);
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
+
+.image-modal.show img {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.image-modal .close-modal {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s ease, color 0.2s ease;
+    opacity: 0;
+    transform: rotate(-90deg);
+}
+
+.image-modal.show .close-modal {
+    opacity: 1;
+    transform: rotate(0deg);
+    transition-delay: 0.1s;
+}
+
+.image-modal .close-modal:hover {
+    color: #ffc107;
+    transform: rotate(90deg);
+}
+
+/* Анимация пульсации для портрета при наведении */
+@keyframes gentlePulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(255, 193, 7, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+    }
+}
+
+.clickable-portrait {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.clickable-portrait:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
+    animation: gentlePulse 1s infinite;
+}
+</style>
+
+<!-- Фильтры -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0 text-dark"><i class="bi bi-funnel"></i> Фильтры</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-5">
+                <input type="text" class="form-control" id="searchNPC" placeholder="Поиск по имени...">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="filterCategory">
+                    <option value="">Все категории</option>
+                    <option value="ally">Союзники</option>
+                    <option value="antagonist">Антагонисты</option>
+                    <option value="neutral">Нейтральные</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="filterRace">
+                    <option value="">Все расы</option>
+                    {% set races = [] %}
+                    {% for npc in npcs %}
+                        {% if npc.race and npc.race not in races %}
+                            {% set _ = races.append(npc.race) %}
+                            <option value="{{ npc.race }}">{{ npc.race }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-end mb-3">
+    <button class="btn btn-sm btn-outline-secondary" id="sortByNameBtn">
+        <i class="bi bi-sort-alpha-down"></i> Сортировать по имени
+    </button>
+</div>
+
+<div class="row" id="npcsContainer">
+    {% for npc_data in npcs %}
+    <div class="col-lg-4 col-md-6 mb-4 npc-card-item" 
+        data-category="{{ npc_data.category }}" 
+        data-race="{{ npc_data.race }}"
+        data-name="{{ npc_data.name }}"
+        data-original-index="{{ loop.index0 }}">
+        <div class="card h-100 shadow-sm border-0 npc-card-container">
+            <div class="row g-0 h-100">
+                <div class="col-4 npc-image-col">
+                    {% if npc_data.portrait_url and npc_data.portrait_url != '/static/images/placeholders/npc.jpg' %}
+                        <img src="{{ npc_data.portrait_url }}" alt="{{ npc_data.name }}" 
+                            class="npc-full-height-img">
+                    {% else %}
+                        <div class="npc-full-height-placeholder">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-8">
+                    <div class="card-header bg-white border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 cinzel text-dark">{{ npc_data.name }}</h6>
+                            <span class="badge 
+                                {% if npc_data.status == 'alive' %}bg-success
+                                {% elif npc_data.status == 'dead' %}bg-danger
+                                {% else %}bg-secondary{% endif %} small">
+                                {% if npc_data.status == 'alive' %}Жив
+                                {% elif npc_data.status == 'dead' %}Мёртв
+                                {% else %}?{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="text-warning mb-1 small">{{ npc_data.title }}</h6>
+                        <p class="text-secondary small mb-1">{{ npc_data.race }}</p>
+                        <p class="text-dark small mb-1">
+                            {% if npc_data.description %}
+                                {{ npc_data.description[:80] }}{% if npc_data.description|length > 80 %}...{% endif %}
+                            {% else %}
+                                Описание не добавлено
+                            {% endif %}
+                        </p>
+                        <div class="mt-1">
+                            <span class="badge bg-secondary small">
+                                {% if npc_data.category == 'ally' %}Союзник
+                                {% elif npc_data.category == 'antagonist' %}Антагонист
+                                {% else %}Нейтральный{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-top">
+                        <button class="btn btn-outline-dark btn-sm w-100 view-npc-btn" data-npc-id="{{ npc_data.id }}">
+                            <i class="bi bi-info-circle"></i> Подробнее
+                        </button>
+                        {% if current_user.is_authenticated %}
+                        <div class="mt-1">
+                            <a href="{{ url_for('edit_npc', id=npc_data.id) }}" class="btn btn-sm btn-warning w-100">
+                                <i class="bi bi-pencil"></i> Ред.
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
+    <div class="modal fade" id="npcModal{{ npc_data.id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white border-warning">
+                    <h5 class="modal-title cinzel">{{ npc_data.name }}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            {% if npc_data.portrait_url and npc_data.portrait_url != '/static/images/placeholders/npc.jpg' %}
+                                <img src="{{ npc_data.portrait_url }}" alt="{{ npc_data.name }}" 
+                                    class="npc-modal-portrait"
+                                    style="width: 100%; max-width: 180px; height: auto; border-radius: 8px; border: 2px solid #ffc107; background: #f8f9fa;">
+                            {% else %}
+                                <div style="width: 100%; max-width: 180px; height: 240px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto; border: 2px solid #ffc107;">
+                                    <i class="bi bi-person-fill" style="font-size: 60px; color: #adb5bd;"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <div class="mb-2">
+                                <h6 class="text-warning small"><i class="bi bi-crown"></i> Титул</h6>
+                                <p class="text-dark small">{{ npc_data.title or 'Не указан' }}</p>
+                            </div>
+                            <div class="mb-2">
+                                <h6 class="text-warning small"><i class="bi bi-person-arms-up"></i> Раса</h6>
+                                <p class="text-dark small">{{ npc_data.race or 'Не указана' }}</p>
+                            </div>
+                            <div class="mb-2">
+                                <h6 class="text-warning small"><i class="bi bi-tag"></i> Категория</h6>
+                                <p class="text-dark small">
+                                    {% if npc_data.category == 'ally' %}Союзник
+                                    {% elif npc_data.category == 'antagonist' %}Антагонист
+                                    {% else %}Нейтральный{% endif %}
+                                </p>
+                            </div>
+                            <div class="mb-2">
+                                <h6 class="text-warning small"><i class="bi bi-file-text"></i> Описание</h6>
+                                <p class="text-dark small">{{ npc_data.description or 'Описание не добавлено' }}</p>
+                            </div>
+                            
+                            <h6 class="text-warning mt-3 small"><i class="bi bi-journal-bookmark-fill"></i> Полная информация</h6>
+                            <div class="bg-light p-2 rounded border">
+                                {% if npc_data.full_info %}
+                                    {{ npc_data.full_info|safe }}
+                                {% else %}
+                                    <p class="text-secondary small mb-0">Информация будет добавлена позже...</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not npcs %}
+<div class="alert alert-info text-center">
+    <i class="bi bi-info-circle fs-1"></i>
+    <h5>Персонажи пока не добавлены</h5>
+    <p>Мастер кампании скоро добавит информацию о ключевых NPC.</p>
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('add_npc') }}" class="btn btn-warning mt-2">Добавить первого персонажа</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if current_user.is_authenticated %}
+<div class="position-fixed bottom-0 end-0 m-4" style="z-index: 1000;">
+    <a href="{{ url_for('add_npc') }}" class="btn btn-warning btn-lg rounded-circle shadow-lg">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Функция фильтрации
+function filterNPCs() {
+    var searchTerm = document.getElementById('searchNPC').value.toLowerCase();
+    var selectedCategory = document.getElementById('filterCategory').value;
+    var selectedRace = document.getElementById('filterRace').value;
+    var items = document.querySelectorAll('.npc-card-item');
+    
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        var name = item.getAttribute('data-name').toLowerCase();
+        var category = item.getAttribute('data-category');
+        var race = item.getAttribute('data-race');
+        
+        var matchesSearch = searchTerm === '' || name.indexOf(searchTerm) !== -1;
+        var matchesCategory = selectedCategory === '' || category === selectedCategory;
+        var matchesRace = selectedRace === '' || race === selectedRace;
+        
+        if (matchesSearch && matchesCategory && matchesRace) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    }
+}
+
+// Сортировка
+var isSorted = false;
+var sortBtn = document.getElementById('sortByNameBtn');
+var container = document.getElementById('npcsContainer');
+
+function sortByName() {
+    var items = Array.from(document.querySelectorAll('.npc-card-item'));
+    
+    items.sort(function(a, b) {
+        var aName = a.getAttribute('data-name');
+        var bName = b.getAttribute('data-name');
+        return aName.localeCompare(bName);
+    });
+    
+    for (var i = 0; i < items.length; i++) {
+        container.appendChild(items[i]);
+    }
+}
+
+function resetToOriginalOrder() {
+    var items = Array.from(document.querySelectorAll('.npc-card-item'));
+    
+    items.sort(function(a, b) {
+        var aIndex = parseInt(a.getAttribute('data-original-index'));
+        var bIndex = parseInt(b.getAttribute('data-original-index'));
+        return aIndex - bIndex;
+    });
+    
+    for (var i = 0; i < items.length; i++) {
+        container.appendChild(items[i]);
+    }
+}
+
+// Обработчик кнопки сортировки
+if (sortBtn) {
+    sortBtn.addEventListener('click', function() {
+        if (isSorted) {
+            resetToOriginalOrder();
+            sortBtn.innerHTML = '<i class="bi bi-sort-alpha-down"></i> Сортировать по имени';
+            isSorted = false;
+        } else {
+            sortByName();
+            sortBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Сбросить сортировку';
+            isSorted = true;
+        }
+    });
+}
+
+// Увеличение портрета с анимацией
+function enlargeImage(src, alt) {
+    console.log('enlargeImage вызван', src, alt); // Для отладки
+    
+    // Удаляем старый модал, если есть
+    var existingModal = document.getElementById('imageModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Создаем элементы
+    var modal = document.createElement('div');
+    modal.className = 'image-modal';
+    modal.id = 'imageModal';
+    
+    var closeBtn = document.createElement('div');
+    closeBtn.className = 'close-modal';
+    closeBtn.innerHTML = '&times;';
+    
+    var img = document.createElement('img');
+    img.src = src;
+    img.alt = alt;
+    
+    // Собираем модал
+    modal.appendChild(closeBtn);
+    modal.appendChild(img);
+    document.body.appendChild(modal);
+    
+    // Принудительно показываем модал
+    modal.style.display = 'flex';
+    
+    // Добавляем класс для анимации с небольшой задержкой
+    setTimeout(function() {
+        modal.classList.add('show');
+    }, 10);
+    
+    // Закрытие при клике на фон или крестик
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal || e.target === closeBtn) {
+            modal.classList.remove('show');
+            setTimeout(function() {
+                if (modal.parentNode) modal.remove();
+            }, 300);
+        }
+    });
+    
+    // Закрытие по Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var openModal = document.getElementById('imageModal');
+            if (openModal) {
+                openModal.classList.remove('show');
+                setTimeout(function() {
+                    if (openModal.parentNode) openModal.remove();
+                }, 300);
+            }
+        }
+    });
+}
+
+// Модальные окна
+function showNpcModal(npcId) {
+    var modalElement = document.getElementById('npcModal' + npcId);
+    if (modalElement) {
+        var modal = new bootstrap.Modal(modalElement);
+        modal.show();
+        
+        // Добавляем обработчик ПОСЛЕ того как модальное окно полностью откроется
+        modalElement.addEventListener('shown.bs.modal', function() {
+            var portrait = modalElement.querySelector('.npc-modal-portrait');
+            console.log('Портрет найден:', portrait); // Для отладки
+            if (portrait) {
+                portrait.classList.add('clickable-portrait');
+                // Убираем старый обработчик, если был
+                portrait.removeEventListener('click', portrait.clickHandler);
+                // Добавляем новый обработчик
+                portrait.clickHandler = function(e) {
+                    e.stopPropagation();
+                    enlargeImage(this.src, this.alt);
+                };
+                portrait.addEventListener('click', portrait.clickHandler);
+            } else {
+                console.log('Портрет НЕ найден! Проверьте класс npc-modal-portrait');
+            }
+        });
+    }
+}
+
+// Обработчики событий
+document.addEventListener('DOMContentLoaded', function() {
+    // Кнопки "Подробнее"
+    var viewButtons = document.querySelectorAll('.view-npc-btn');
+    for (var i = 0; i < viewButtons.length; i++) {
+        viewButtons[i].addEventListener('click', function() {
+            var npcId = this.getAttribute('data-npc-id');
+            if (npcId !== null) {
+                showNpcModal(npcId);
+            }
+        });
+    }
+    
+    // Фильтры
+    var searchInput = document.getElementById('searchNPC');
+    var categoryFilter = document.getElementById('filterCategory');
+    var raceFilter = document.getElementById('filterRace');
+    
+    if (searchInput) searchInput.addEventListener('input', filterNPCs);
+    if (categoryFilter) categoryFilter.addEventListener('change', filterNPCs);
+    if (raceFilter) raceFilter.addEventListener('change', filterNPCs);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}{% if image %}Редактировать{% else %}Добавить{% endif %} изображение{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h4 class="cinzel mb-0 text-dark">
+                    {% if image %}Редактирование{% else %}Новое{% endif %} изображение
+                </h4>
+            </div>
+            <div class="card-body bg-white">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Название *</label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                                value="{{ image.title if image else '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Категория *</label>
+                        <select class="form-select" id="category" name="category" required>
+                            <option value="map" {% if image and image.category == 'map' %}selected{% endif %}>🗺️ Карты</option>
+                            <option value="art" {% if image and image.category == 'art' %}selected{% endif %}>🎨 Арты</option>
+                            <option value="npc" {% if image and image.category == 'npc' %}selected{% endif %}>👤 NPC</option>
+                            <option value="location" {% if image and image.category == 'location' %}selected{% endif %}>📍 Локации</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ image.description if image else '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="sort_order" class="form-label">Порядок сортировки</label>
+                        <input type="number" class="form-control" id="sort_order" name="sort_order" 
+                                value="{{ image.sort_order if image else 0 }}" min="0">
+                        <div class="form-text">Меньшее число = выше в списке</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image" class="form-label">
+                            {% if image %}Новое изображение (оставьте пустым чтобы не менять){% else %}Изображение *{% endif %}
+                        </label>
+                        <input type="file" class="form-control" id="image" name="image" 
+                                accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                                {% if not image %}required{% endif %}>
+                        <div class="form-text">Поддерживаются форматы: PNG, JPG, JPEG, GIF, WEBP</div>
+                    </div>
+                    
+                    {% if image %}
+                    <div class="mb-3">
+                        <label class="form-label">Текущее изображение</label>
+                        <div>
+                            <img src="{{ url_for('static', filename='uploads/' + image.image_filename) }}" 
+                                style="max-width: 200px; border-radius: 8px;" 
+                                alt="{{ image.title }}">
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Сохранить
+                        </button>
+                        <a href="{{ url_for('admin_gallery') }}" class="btn btn-secondary">
+                            Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

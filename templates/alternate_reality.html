@@ -1,0 +1,517 @@
+{% extends "base.html" %}
+
+{% block title %}Альтернативная Реальность - Тордек против Солар{% endblock %}
+
+{% block content %}
+<style>
+    /* Переопределяем фон body для этой страницы, чтобы не конфликтовать с основным сайтом */
+    .game-page-body {
+        background: linear-gradient(145deg, #0a0f1e 0%, #0c1222 100%);
+        padding: 20px;
+    }
+    
+    .game-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    /* Кнопка назад в стиле сайта */
+    .back-link {
+        display: inline-block;
+        margin-bottom: 20px;
+        color: #ffc107;
+        text-decoration: none;
+        font-family: 'Cinzel', serif;
+        transition: color 0.3s;
+    }
+    
+    .back-link:hover {
+        color: #e0a800;
+        text-decoration: underline;
+    }
+</style>
+
+<div class="game-wrapper">
+    <a href="{{ url_for('secret_archive') }}" class="back-link">
+        <i class="bi bi-arrow-left"></i> Вернуться в секретный архив
+    </a>
+    
+    <!-- ВСТАВЬТЕ ВЕСЬ ВАШ КОД МИНИ-ИГРЫ СЮДА -->
+    <!-- НАЧАЛО ВАШЕГО КОДА -->
+    
+    <div class="game-container">
+        <div class="battlefield">
+            <div class="hero-side">
+                <div class="character-card hero-card" id="heroCard">
+                    <div class="char-name">⚒️ Тордек</div>
+                    <div class="hp-bar"><div class="hp-fill" id="heroHpFill" style="width: 100%"></div></div>
+                    <div>❤️ <span id="heroHp">53</span> / <span id="heroMaxHp">53</span>  |  🛡️ AC 16  |  🧠 MP <span id="heroMana">24</span></div>
+                    <div class="stats">💪+1 | 🏹+1 | ❤️‍🩹+3 | 🧠+3 | 🧘+2 | ✨-1</div>
+                    <div>🔫 Пистолет: <span id="pistolAmmo">6</span>/6  |  💊 Зелья: <span id="heroPotions">3</span></div>
+                    <div>✨ Пушка: <span id="cannonStatus">❌ не создана</span></div>
+                </div>
+                <div id="cannonWidget" style="width: 260px; background: #2c211eb3; border-radius: 20px; padding: 8px 12px; display: none;">
+                    🔥 Мистическая пушка | ❤️ <span id="cannonHp">25</span>/25 | 🛡️ AC 18
+                </div>
+            </div>
+
+            <div class="enemies-side" id="enemiesContainer"></div>
+        </div>
+
+        <div class="action-panel" id="actionPanel">
+            <div class="turn-indicator" id="turnText">⚡ Ход Тордека</div>
+            <button id="btnAttack" disabled>⚔️ Атака (осн)</button>
+            <button id="btnCatapult" disabled>📦 Катапульта (осн, 6 маны)</button>
+            <button id="btnThunderwave" disabled>💥 Волна грома (осн, 6 маны)</button>
+            <button id="BtnScorchingRay" disabled>🔥 Палящий луч (осн, 8 маны)</button>
+            <button id="btnCannon" disabled>🛠️ Создать пушку (бонус)</button>
+            <button id="btnReload" disabled>🔄 Перезарядка (осн)</button>
+            <button id="btnDrinkPotion" disabled>🍷 Зелье лечения (бонус)</button>
+            <button id="btnSanctuary" disabled>✨ Щит (бонус, 2 маны)</button>
+            <button id="btnCannonFire" disabled>💢 Активировать пушку (бонус)</button>
+            <button id="btnEndTurn" disabled>⏩ Закончить ход</button>
+        </div>
+        <div class="combat-log" id="combatLog"></div>
+    </div>
+    
+    <!-- КОНЕЦ ВАШЕГО КОДА -->
+</div>
+
+<!-- ПЕРЕНОСИМ ВЕСЬ ВАШ JavaScript СЮДА -->
+<script>
+    // ========== СИСТЕМА КУБИКОВ ==========
+    const roll = (dice, add = 0) => {
+        let total = add;
+        if (dice.includes('d')) {
+            let [num, size] = dice.split('d');
+            num = parseInt(num) || 1;
+            size = parseInt(size);
+            for (let i = 0; i < num; i++) total += Math.floor(Math.random() * size) + 1;
+        } else total += parseInt(dice) || 0;
+        return { total, rolls: [] };
+    };
+
+    function addLog(msg) {
+        const logDiv = document.getElementById('combatLog');
+        const line = document.createElement('div');
+        line.className = 'log-line';
+        line.innerText = msg;
+        logDiv.appendChild(line);
+        line.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // ========== ДАННЫЕ ==========
+    let hero = {
+        name: "Тордек", hp: 53, maxHp: 53, ac: 16, mana: 24, maxMana: 24,
+        strMod: 1, dexMod: 1, conMod: 3, intMod: 3, wisMod: 2, chaMod: -1, prof: 3,
+        pistolAmmo: 6, maxAmmo: 6, potions: 3, sanctuaryActive: false,
+        cannon: null, cannonCreated: false, mysticalWeapon: true
+    };
+
+    let enemies = [
+        { id: 0, name: "Каллиста", hp: 27, maxHp: 27, ac: 17, strMod: -1, dexMod: 3, conMod: 2, intMod: 1, wisMod: 0, chaMod: 2, prof: 2, potion: 1, type: "rogue" },
+        { id: 1, name: "Авада", hp: 31, maxHp: 31, ac: 18, strMod: 3, dexMod: 0, conMod: 2, intMod: -1, wisMod: 0, chaMod: 2, prof: 2, potion: 1, divineSmiteSlots: 2, hunterMark: false, type: "paladin" },
+        { id: 2, name: "Лин Адо", hp: 28, maxHp: 28, ac: 17, strMod: 0, dexMod: 3, conMod: 2, intMod: -1, wisMod: 1, chaMod: 3, prof: 2, potion: 1, riteActive: false, curseMarksUsed: 0, hemocraftDie: 4, type: "hunter" }
+    ];
+
+    let battleActive = true;
+    let isPlayerTurn = true;
+    let enemyTurnQueue = [];
+    let currentEnemyIndex = 0;
+    let selectedEnemyId = null;
+    let usedMainAction = false;
+    let usedBonusAction = false;
+
+    // ========== UI ОБНОВЛЕНИЕ ==========
+    function updateUI() {
+        document.getElementById('heroHp').innerText = hero.hp;
+        document.getElementById('heroMaxHp').innerText = hero.maxHp;
+        let hpPercent = (hero.hp / hero.maxHp) * 100;
+        document.getElementById('heroHpFill').style.width = `${Math.max(0, hpPercent)}%`;
+        document.getElementById('heroMana').innerText = hero.mana;
+        document.getElementById('pistolAmmo').innerText = hero.pistolAmmo;
+        document.getElementById('heroPotions').innerText = hero.potions;
+        let cannonDiv = document.getElementById('cannonWidget');
+        if (hero.cannonCreated && hero.cannon && hero.cannon.hp > 0) {
+            cannonDiv.style.display = 'block';
+            document.getElementById('cannonHp').innerText = hero.cannon.hp;
+        } else cannonDiv.style.display = 'none';
+        document.getElementById('cannonStatus').innerText = hero.cannonCreated ? "✅ активна" : "❌ не создана";
+
+        const container = document.getElementById('enemiesContainer');
+        container.innerHTML = '';
+        enemies.forEach((e, idx) => {
+            const card = document.createElement('div');
+            card.className = `character-card enemy-card ${selectedEnemyId === idx ? 'selected' : ''}`;
+            card.setAttribute('data-id', idx);
+            card.onclick = () => { if (isPlayerTurn && battleActive) { selectedEnemyId = idx; updateUI(); addLog(`🎯 Цель: ${e.name}`); } };
+            let hpPercentEnemy = (e.hp / e.maxHp) * 100;
+            card.innerHTML = `
+                <div class="char-name">☠️ ${e.name}</div>
+                <div class="hp-bar"><div class="hp-fill" style="width: ${hpPercentEnemy}%; background:#bc3f2e;"></div></div>
+                <div>❤️ ${e.hp}/${e.maxHp}  |  🛡️ AC ${e.ac}</div>
+                <div class="stats">💪${e.strMod} 🏹${e.dexMod} 🧬${e.conMod} 🧠${e.intMod} 🧘${e.wisMod} ✨${e.chaMod}</div>
+                ${e.potion > 0 ? '💊 зелье' : ''}
+            `;
+            container.appendChild(card);
+        });
+
+        let btnsMain = ['btnAttack','btnCatapult','btnThunderwave','BtnScorchingRay','btnReload'];
+        let btnsBonus = ['btnCannon','btnDrinkPotion','btnSanctuary','btnCannonFire'];
+        btnsMain.forEach(id => {
+            let btn = document.getElementById(id);
+            if (btn) btn.disabled = !isPlayerTurn || !battleActive || usedMainAction;
+        });
+        btnsBonus.forEach(id => {
+            let btn = document.getElementById(id);
+            if (btn) btn.disabled = !isPlayerTurn || !battleActive || usedBonusAction;
+        });
+        document.getElementById('btnEndTurn').disabled = !isPlayerTurn || !battleActive;
+        
+        let cannonFireBtn = document.getElementById('btnCannonFire');
+        if (cannonFireBtn) cannonFireBtn.disabled = !isPlayerTurn || !battleActive || usedBonusAction || !hero.cannonCreated || hero.cannon?.hp <= 0;
+    }
+
+    function checkBattleEnd() {
+        let allDead = enemies.every(e => e.hp <= 0);
+        if (allDead) { endBattle(true); return true; }
+        if (hero.hp <= 0) { endBattle(false); return true; }
+        return false;
+    }
+
+    function endBattle(victory) {
+        battleActive = false;
+        isPlayerTurn = false;
+        if (victory) addLog("🏆 ПОБЕДА! Тордек одолел Солар.");
+        else addLog("💀 Тордек повержен...");
+        document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+    }
+
+    function checkStealth(rogue) {
+        let stealthRoll = roll('1d20', rogue.dexMod + rogue.prof);
+        let perceptionRoll = roll('1d20', hero.wisMod + hero.prof);
+        let success = stealthRoll.total > perceptionRoll.total;
+        addLog(`[Скрытность] Каллиста: ${stealthRoll.total} vs Восприятие: ${perceptionRoll.total} — ${success ? 'успех (+3d6)' : 'провал'}`);
+        return success;
+    }
+
+    function enemyAttack(attacker) {
+        if (!battleActive) return;
+        let attackRoll = roll('1d20', attacker.dexMod + attacker.prof);
+        let hit = attackRoll.total >= hero.ac;
+        let damage = 0;
+        let damageRoll;
+        
+        if (attacker.type === 'rogue') {
+            let stealthBonus = checkStealth(attacker);
+            damageRoll = roll('1d6', attacker.dexMod);
+            damage = damageRoll.total;
+            if (stealthBonus) {
+                let sneak = roll('3d6', 0);
+                damage += sneak.total;
+                addLog(`🔪 Скрытая атака! +${sneak.total}`);
+            }
+        } else if (attacker.type === 'paladin') {
+            damageRoll = roll('1d8', attacker.strMod);
+            damage = damageRoll.total;
+            if (attacker.divineSmiteSlots > 0 && Math.random() < 0.5) {
+                let smite = roll('2d8', 0);
+                damage += smite.total;
+                attacker.divineSmiteSlots--;
+                addLog(`✨ Божественная кара! +${smite.total} урона`);
+            }
+            if (attacker.hunterMark) damage += roll('1d6').total;
+        } else {
+            damageRoll = roll('1d10', attacker.dexMod);
+            damage = damageRoll.total;
+            if (attacker.riteActive) damage += roll('1d4').total;
+        }
+        
+        if (hero.sanctuaryActive) {
+            let wisSave = roll('1d20', attacker.wisMod).total;
+            let dc = 8 + hero.wisMod + hero.prof;
+            if (wisSave < dc) {
+                addLog(`✨ Щит защитил Тордека! ${attacker.name} теряет атаку.`);
+                return;
+            }
+        }
+        
+        if (hit) {
+            hero.hp = Math.max(0, hero.hp - damage);
+            addLog(`⚔️ ${attacker.name} атакует: ${attackRoll.total} vs AC ${hero.ac} → ПОПАДАНИЕ! Урон ${damage}. ❤️ Тордек ${hero.hp}/${hero.maxHp}`);
+        } else addLog(`🍃 ${attacker.name} атакует: ${attackRoll.total} vs AC ${hero.ac} → ПРОМАХ!`);
+        updateUI();
+        if (hero.hp <= 0) endBattle(false);
+    }
+
+    async function enemyTurn() {
+        if (!battleActive) return;
+        if (currentEnemyIndex >= enemyTurnQueue.length) {
+            isPlayerTurn = true;
+            usedMainAction = false;
+            usedBonusAction = false;
+            selectedEnemyId = null;
+            updateUI();
+            addLog("🔹 Ваш ход! Выберите действие и цель.");
+            return;
+        }
+        let enemy = enemyTurnQueue[currentEnemyIndex];
+        if (!enemy || enemy.hp <= 0) {
+            currentEnemyIndex++;
+            enemyTurn();
+            return;
+        }
+        addLog(`🌑 Ход ${enemy.name}`);
+        
+        if (enemy.type === 'paladin' && !enemy.hunterMark && Math.random() < 0.4) {
+            enemy.hunterMark = true;
+            addLog(`🏹 Авада накладывает Метку охотника (+1к6 урона)`);
+        }
+        if (enemy.type === 'hunter' && !enemy.riteActive && enemy.hp > 5) {
+            let dmgSelf = roll('1d4').total;
+            enemy.hp -= dmgSelf;
+            enemy.riteActive = true;
+            addLog(`🔥 Лин Адо совершает Обряд пламени, получая ${dmgSelf} урона. Катана пылает!`);
+            updateUI();
+            if (enemy.hp <= 0) { currentEnemyIndex++; enemyTurn(); return; }
+        }
+        if (enemy.type === 'hunter' && enemy.curseMarksUsed < 2 && Math.random() < 0.4 && enemy.hp > 4) {
+            let hemoroll = roll('1d4').total;
+            enemy.curseMarksUsed++;
+            enemy.hp -= hemoroll;
+            addLog(`🩸 Лин Адо накладывает Проклятье метки, теряя ${hemoroll} ХП. Атака с преимуществом!`);
+            let adv1 = roll('1d20', enemy.dexMod + enemy.prof).total;
+            let adv2 = roll('1d20', enemy.dexMod + enemy.prof).total;
+            let attackRoll = Math.max(adv1, adv2);
+            let hit = attackRoll >= hero.ac;
+            let dmg = roll('1d10', enemy.dexMod).total;
+            if (enemy.riteActive) dmg += roll('1d4').total;
+            if (hit) {
+                hero.hp = Math.max(0, hero.hp - dmg);
+                addLog(`⚔️ Атака с преимуществом: ${attackRoll} vs AC ${hero.ac} → ПОПАДАНИЕ! Урон ${dmg}`);
+            } else addLog(`🍃 Атака с преимуществом: ПРОМАХ!`);
+            updateUI();
+            if (hero.hp <= 0) endBattle(false);
+            currentEnemyIndex++;
+            enemyTurn();
+            return;
+        }
+        
+        enemyAttack(enemy);
+        if (hero.hp <= 0) return;
+        
+        if (enemy.potion > 0 && enemy.hp < enemy.maxHp * 0.4 && battleActive) {
+            let heal = roll('2d4', enemy.wisMod).total;
+            enemy.hp = Math.min(enemy.maxHp, enemy.hp + heal);
+            enemy.potion--;
+            addLog(`💊 ${enemy.name} выпивает зелье! +${heal} HP.`);
+            updateUI();
+        }
+        
+        currentEnemyIndex++;
+        setTimeout(() => enemyTurn(), 300);
+    }
+
+    function startEnemyPhase() {
+        if (!battleActive) return;
+        isPlayerTurn = false;
+        usedMainAction = false;
+        usedBonusAction = false;
+        let initiatives = enemies.map((e, idx) => ({ idx, val: roll('1d20', e.dexMod).total }));
+        initiatives.sort((a,b) => b.val - a.val);
+        enemyTurnQueue = initiatives.map(i => enemies[i.idx]);
+        currentEnemyIndex = 0;
+        addLog(`🎲 Порядок врагов: ${enemyTurnQueue.map(e=>e.name).join(' → ')}`);
+        enemyTurn();
+    }
+
+    function useMainAction(action) {
+        if (!isPlayerTurn || !battleActive || usedMainAction) return;
+        if (selectedEnemyId === null && action !== 'thunderwave') {
+            addLog("❌ Сначала выберите врага!");
+            return;
+        }
+        let target = enemies[selectedEnemyId];
+        if (target && target.hp <= 0 && action !== 'thunderwave') {
+            addLog("Цель мертва, выберите другую.");
+            return;
+        }
+        
+        if (action === 'attack') {
+            let isPistol = hero.pistolAmmo > 0;
+            let attackMod = isPistol ? hero.dexMod : hero.strMod;
+            let attackRollTotal = roll('1d20', attackMod + hero.prof).total;
+            let hit = attackRollTotal >= target.ac;
+            if (hit) {
+                let dmgRoll = isPistol ? roll('2d6', hero.dexMod) : roll('1d10', hero.strMod);
+                let damage = dmgRoll.total;
+                if (isPistol) hero.pistolAmmo--;
+                addLog(`🔫 ${isPistol ? 'Пистолет' : 'Молот'}: ${attackRollTotal} vs AC ${target.ac} → ПОПАДАНИЕ! Урон ${damage}`);
+                target.hp -= damage;
+            } else addLog(`🍃 Промах! ${attackRollTotal} vs AC ${target.ac}`);
+            usedMainAction = true;
+        }
+        else if (action === 'catapult' && hero.mana >= 6) {
+            hero.mana -= 6;
+            let dc = 8 + hero.intMod + hero.prof;
+            let saveRoll = roll('1d20', target.dexMod + (target.prof || 0)).total;
+            let dmgRoll = roll('3d8', hero.intMod);
+            let damage = dmgRoll.total;
+            if (saveRoll >= dc) damage = Math.floor(damage / 2);
+            addLog(`📦 Катапульта: СЛ ${dc}, спасбросок ${saveRoll} → ${saveRoll >= dc ? 'успех' : 'провал'}, урон ${damage}`);
+            target.hp -= damage;
+            usedMainAction = true;
+        }
+        else if (action === 'thunderwave' && hero.mana >= 6) {
+            hero.mana -= 6;
+            let dc = 8 + hero.intMod + hero.prof;
+            enemies.forEach(e => {
+                if (e.hp > 0) {
+                    let save = roll('1d20', e.conMod + (e.prof || 0)).total;
+                    let dmgRoll = roll('2d8', hero.intMod);
+                    let dmg = dmgRoll.total;
+                    if (save >= dc) dmg = Math.floor(dmg / 2);
+                    e.hp = Math.max(0, e.hp - dmg);
+                    addLog(`🌊 ${e.name}: спасбросок ${save} → урон ${dmg}`);
+                }
+            });
+            usedMainAction = true;
+        }
+        else if (action === 'scorchingRay' && hero.mana >= 8) {
+            hero.mana -= 8;
+            let available = enemies.filter(e => e.hp > 0);
+            if (available.length === 0) return;
+            let targets = [target];
+            if (available.length > 1 && selectedEnemyId !== null) {
+                let other = available.find(e => e !== target);
+                if (other) targets.push(other);
+            }
+            for (let i = 0; i < 3; i++) {
+                let beamTarget = targets[i % targets.length];
+                if (beamTarget && beamTarget.hp > 0) {
+                    let attackRay = roll('1d20', hero.intMod + hero.prof).total;
+                    if (attackRay >= beamTarget.ac) {
+                        let dmg = roll('2d6', 0).total;
+                        beamTarget.hp = Math.max(0, beamTarget.hp - dmg);
+                        addLog(`🔥 Луч по ${beamTarget.name}: попадание! Урон ${dmg}`);
+                    } else addLog(`🔥 Луч по ${beamTarget.name}: промах!`);
+                }
+            }
+            usedMainAction = true;
+        }
+        else if (action === 'reload') {
+            hero.pistolAmmo = hero.maxAmmo;
+            addLog(`🔄 Перезарядка! Пистолет 6/6.`);
+            usedMainAction = true;
+        }
+        else {
+            addLog("Недостаточно ресурсов или неверное действие.");
+            return;
+        }
+        
+        if (hero.mysticalWeapon && (action === 'catapult' || action === 'thunderwave' || action === 'scorchingRay')) {
+            let extra = roll('1d8').total;
+            addLog(`✨ Мистическое оружие добавляет +${extra} урона к заклинанию (уже учтено)`);
+        }
+        
+        updateUI();
+        if (checkBattleEnd()) return;
+        if (usedMainAction && usedBonusAction) {
+            addLog("✅ Использованы оба действия. Ход завершён.");
+            endPlayerTurn();
+        } else updateUI();
+    }
+    
+    function useBonusAction(action) {
+        if (!isPlayerTurn || !battleActive || usedBonusAction) return;
+        
+        if (action === 'cannon' && !hero.cannonCreated) {
+            hero.cannonCreated = true;
+            hero.cannon = { hp: 25, ac: 18 };
+            addLog(`🛠️ Создана Мистическая пушка! (HP 25, AC 18)`);
+            usedBonusAction = true;
+        }
+        else if (action === 'potion' && hero.potions > 0) {
+            let heal = roll('2d4', hero.wisMod).total;
+            hero.hp = Math.min(hero.maxHp, hero.hp + heal);
+            hero.potions--;
+            addLog(`🍷 Зелье лечения: +${heal} HP. Теперь ${hero.hp}/${hero.maxHp}`);
+            usedBonusAction = true;
+        }
+        else if (action === 'sanctuary' && hero.mana >= 2) {
+            hero.mana -= 2;
+            hero.sanctuaryActive = true;
+            addLog(`✨ Щит активен! Враги должны проходить спасбросок Мудрости для атаки.`);
+            usedBonusAction = true;
+        }
+        else if (action === 'cannonFire' && hero.cannonCreated && hero.cannon?.hp > 0) {
+            let dc = 8 + hero.intMod + hero.prof;
+            enemies.forEach(e => {
+                if (e.hp > 0) {
+                    let save = roll('1d20', e.dexMod + (e.prof || 0)).total;
+                    let dmgRoll = roll('2d8', hero.intMod);
+                    let dmg = dmgRoll.total;
+                    if (save >= dc) dmg = Math.floor(dmg / 2);
+                    e.hp = Math.max(0, e.hp - dmg);
+                    addLog(`💢 Пушка-огнемёт по ${e.name}: спасбросок ${save} → урон ${dmg}`);
+                }
+            });
+            usedBonusAction = true;
+        }
+        else {
+            addLog("Недоступно или нет ресурсов.");
+            return;
+        }
+        updateUI();
+        if (checkBattleEnd()) return;
+        if (usedMainAction && usedBonusAction) {
+            addLog("✅ Оба действия использованы. Ход завершён.");
+            endPlayerTurn();
+        } else updateUI();
+    }
+    
+    function endPlayerTurn() {
+        if (!isPlayerTurn || !battleActive) return;
+        addLog("🔁 Ход Тордека окончен.");
+        startEnemyPhase();
+    }
+    
+    function initGame() {
+        battleActive = true;
+        isPlayerTurn = true;
+        usedMainAction = false;
+        usedBonusAction = false;
+        selectedEnemyId = null;
+        hero.hp = hero.maxHp;
+        hero.mana = hero.maxMana;
+        hero.pistolAmmo = hero.maxAmmo;
+        hero.potions = 3;
+        hero.cannonCreated = false;
+        hero.cannon = null;
+        hero.sanctuaryActive = false;
+        enemies.forEach(e => {
+            e.hp = e.maxHp;
+            e.potion = 1;
+            e.divineSmiteSlots = 2;
+            e.hunterMark = false;
+            e.riteActive = false;
+            e.curseMarksUsed = 0;
+        });
+        updateUI();
+        addLog("⚔️ БОЙ НАЧИНАЕТСЯ! Тордек ходит первым.");
+    }
+    
+    document.getElementById('btnAttack').onclick = () => useMainAction('attack');
+    document.getElementById('btnCatapult').onclick = () => useMainAction('catapult');
+    document.getElementById('btnThunderwave').onclick = () => useMainAction('thunderwave');
+    document.getElementById('BtnScorchingRay').onclick = () => useMainAction('scorchingRay');
+    document.getElementById('btnReload').onclick = () => useMainAction('reload');
+    document.getElementById('btnCannon').onclick = () => useBonusAction('cannon');
+    document.getElementById('btnDrinkPotion').onclick = () => useBonusAction('potion');
+    document.getElementById('btnSanctuary').onclick = () => useBonusAction('sanctuary');
+    document.getElementById('btnCannonFire').onclick = () => useBonusAction('cannonFire');
+    document.getElementById('btnEndTurn').onclick = () => endPlayerTurn();
+    
+    initGame();
+</script>
+{% endblock %}

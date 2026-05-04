@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Галерея{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="cinzel text-dark">Галерея</h1>
+        <p class="lead text-secondary">Карты, арты и визуальные материалы</p>
+        <hr class="border-warning">
+    </div>
+</div>
+
+{% if images %}
+    <!-- Фильтры галереи -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0 text-dark"><i class="bi bi-funnel"></i> Фильтры</h5>
+        </div>
+        <div class="card-body">
+            <div class="btn-group flex-wrap" role="group">
+                <button class="btn btn-outline-secondary filter-btn active" data-filter="all">Все</button>
+                <button class="btn btn-outline-secondary filter-btn" data-filter="map">Карты</button>
+                <button class="btn btn-outline-secondary filter-btn" data-filter="art">Арты</button>
+                <button class="btn btn-outline-secondary filter-btn" data-filter="npc">NPC</button>
+                <button class="btn btn-outline-secondary filter-btn" data-filter="location">Локации</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Галерея изображений -->
+    <div class="row" id="galleryGrid">
+        {% for image in images %}
+        <div class="col-md-4 col-lg-3 mb-4 gallery-item" data-category="{{ image.category }}">
+            <div class="card h-100 shadow-sm border-0 gallery-card">
+                <div class="gallery-image-container">
+                    <img src="{{ url_for('static', filename='uploads/' + image.image_filename) }}" 
+                         class="gallery-img" 
+                         alt="{{ image.title }}"
+                         loading="lazy">
+                    <div class="gallery-overlay">
+                        <button class="btn btn-light btn-sm view-image" data-image-id="{{ image.id }}">
+                            <i class="bi bi-zoom-in"></i> Просмотр
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body bg-white">
+                    <h6 class="cinzel text-dark mb-1">{{ image.title }}</h6>
+                    <p class="small text-secondary">{{ image.description[:80] }}{% if image.description|length > 80 %}...{% endif %}</p>
+                    <span class="badge bg-secondary">
+                        {% if image.category == 'map' %}🗺️ Карта
+                        {% elif image.category == 'art' %}🎨 Арт
+                        {% elif image.category == 'npc' %}👤 NPC
+                        {% elif image.category == 'location' %}📍 Локация
+                        {% else %}📷 Изображение{% endif %}
+                    </span>
+                </div>
+                {% if current_user.is_authenticated %}
+                <div class="card-footer bg-white border-top">
+                    <a href="{{ url_for('edit_gallery_image', id=image.id) }}" class="btn btn-sm btn-warning">
+                        <i class="bi bi-pencil"></i> Редактировать
+                    </a>
+                    <a href="{{ url_for('delete_gallery_image', id=image.id) }}" class="btn btn-sm btn-danger"
+                       onclick="return confirm('Удалить изображение?')">
+                        <i class="bi bi-trash"></i> Удалить
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Модальное окно для просмотра изображения -->
+        <div class="modal fade" id="imageModal{{ image.id }}" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content bg-dark">
+                    <div class="modal-header border-warning">
+                        <h5 class="modal-title cinzel text-white">{{ image.title }}</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="{{ url_for('static', filename='uploads/' + image.image_filename) }}" 
+                             class="img-fluid rounded" 
+                             alt="{{ image.title }}">
+                        {% if image.description %}
+                        <p class="text-white mt-3">{{ image.description }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info text-center">
+        <i class="bi bi-images fs-1"></i>
+        <h5>Галерея пуста</h5>
+        <p>Мастер может добавлять изображения через админ-панель.</p>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('add_gallery_image') }}" class="btn btn-warning mt-2">
+            <i class="bi bi-plus-circle"></i> Добавить изображение
+        </a>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% if current_user.is_authenticated %}
+<div class="position-fixed bottom-0 end-0 m-4" style="z-index: 1000;">
+    <a href="{{ url_for('add_gallery_image') }}" class="btn btn-warning btn-lg rounded-circle shadow-lg">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block styles %}
+<style>
+.gallery-image-container {
+    position: relative;
+    overflow: hidden;
+    height: 200px;
+    cursor: pointer;
+}
+
+.gallery-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.gallery-card:hover .gallery-img {
+    transform: scale(1.05);
+}
+
+.gallery-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.gallery-image-container:hover .gallery-overlay {
+    opacity: 1;
+}
+
+.filter-btn {
+    margin: 0 4px;
+}
+
+.filter-btn.active {
+    background-color: #ffc107;
+    color: #000;
+    border-color: #ffc107;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Фильтрация галереи
+document.addEventListener('DOMContentLoaded', function() {
+    var filterBtns = document.querySelectorAll('.filter-btn');
+    var galleryItems = document.querySelectorAll('.gallery-item');
+    
+    filterBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var filter = this.getAttribute('data-filter');
+            
+            // Обновляем активную кнопку
+            filterBtns.forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            
+            // Фильтруем элементы
+            galleryItems.forEach(function(item) {
+                if (filter === 'all' || item.getAttribute('data-category') === filter) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // Просмотр изображений
+    var viewBtns = document.querySelectorAll('.view-image');
+    viewBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var imageId = this.getAttribute('data-image-id');
+            var modal = new bootstrap.Modal(document.getElementById('imageModal' + imageId));
+            modal.show();
+        });
+    });
+});
+</script>
+{% endblock %}

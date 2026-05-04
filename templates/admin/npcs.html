@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Управление NPC{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="cinzel text-shadow">Управление NPC</h1>
+    <a href="{{ url_for('add_npc') }}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Добавить NPC
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-dark table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Имя</th>
+                <th>Титул</th>
+                <th>Раса</th>
+                <th>Категория</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for npc in npcs %}
+            <tr>
+                <td>{{ npc.id }}</td>
+                <td>{{ npc.name }}</td>
+                <td>{{ npc.title }}</td>
+                <td>{{ npc.race }}</td>
+                <td>{{ npc.category }}</td>
+                <td>
+                    <span class="badge {% if npc.status == 'alive' %}bg-success{% elif npc.status == 'dead' %}bg-danger{% else %}bg-secondary{% endif %}">
+                        {{ npc.status }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{{ url_for('edit_npc', id=npc.id) }}" class="btn btn-sm btn-warning">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{{ url_for('delete_npc', id=npc.id) }}" class="btn btn-sm btn-danger" 
+                        onclick="return confirm('Удалить {{ npc.name }}?')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}{% if article %}Редактировать{% else %}Добавить{% endif %} статью{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h4 class="cinzel mb-0">{% if article %}Редактирование{% else %}Новая{% endif %} статья</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Заголовок *</label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                                value="{{ article.title if article else '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Категория *</label>
+                        <select class="form-select" id="category" name="category" required>
+                            <option value="world" {% if article and article.category == 'world' %}selected{% endif %}>Мир</option>
+                            <option value="rule" {% if article and article.category == 'rule' %}selected{% endif %}>Правила</option>
+                            <option value="pantheon" {% if article and article.category == 'pantheon' %}selected{% endif %}>Пантеон</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Содержание статьи</label>
+                        <textarea class="form-control" id="content" name="content" rows="15">{{ article.content if article else '' }}</textarea>
+                        <div class="form-text mt-2">
+                            <i class="bi bi-markdown"></i> 
+                            <strong>Поддерживается Markdown форматирование:</strong><br>
+                            <code># Заголовок</code> - заголовок<br>
+                            <code>**жирный**</code> - <b>жирный текст</b><br>
+                            <code>*курсив*</code> - <i>курсив</i><br>
+                            <code>- пункт</code> - маркированный список<br>
+                            <code>1. пункт</code> - нумерованный список<br>
+                            <code>> цитата</code> - цитата<br>
+                            <code>---</code> - горизонтальная линия<br>
+                            <code>пустая строка</code> - создает новый абзац с красной строкой
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_spoiler" name="is_spoiler"
+                                {% if article and article.is_spoiler %}checked{% endif %}>
+                        <label class="form-check-label" for="is_spoiler">
+                            Это спойлер (скрыто от игроков)
+                        </label>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Сохранить
+                        </button>
+                        <a href="{{ url_for('admin_articles') }}" class="btn btn-secondary">
+                            Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

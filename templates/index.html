@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="display-1 cinzel text-shadow mb-3">ЭХО ПУСТОТЫ</h1>
+    <p class="lead">Мрачное эпическое фэнтези в мире Альдерии</p>
+    <hr class="w-50 mx-auto border-danger">
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card bg-dark border-warning mb-4">
+            <div class="card-body">
+                <h3 class="card-title cinzel">Эхо Пустоты</h3>
+                <p class="card-text">
+                    Они приходят в черных рясах. Они шепчут о покое, который наступит, когда замолкнут все голоса. Они служат Молчанию.
+                </p>
+                <p class="card-text">
+                    Вы — отряд «Солар», созданный по приказу короля, чтобы расследовать исчезновения и убийства, связанные с Культом Пустоты. Но чем глубже вы копаете, тем яснее понимаете: угроза не ограничивается границами Альдерии. Она пришла из космоса. Из самой Пустоты между звёздами.
+                </p>
+                <p class="card-text">
+                    Сможете ли вы противостоять божеству, которое не желает ничего, кроме тишины?
+                </p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 bg-secondary border-0 hover-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-globe-europe-africa display-4 mb-3 text-warning"></i>
+                        <h5 class="cinzel">Мир Альдерии</h5>
+                        <p>История, политика, культура и тайны королевства</p>
+                        <a href="{{ url_for('world') }}" class="btn btn-outline-warning">Исследовать</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 bg-secondary border-0 hover-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-people display-4 mb-3 text-warning"></i>
+                        <h5 class="cinzel">Персонажи</h5>
+                        <p>Союзники, враги и таинственные незнакомцы</p>
+                        <a href="{{ url_for('npcs') }}" class="btn btn-outline-warning">Встретить</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 bg-secondary border-0 hover-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-map display-4 mb-3 text-warning"></i>
+                        <h5 class="cinzel">Локации</h5>
+                        <p>Карты и описания ключевых мест королевства</p>
+                        <a href="{{ url_for('locations') }}" class="btn btn-outline-warning">Путешествовать</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
