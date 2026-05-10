@@ -6,28 +6,12 @@
 <div class="row mb-4">
     <div class="col-12">
         <h1 class="cinzel text-dark">Галерея</h1>
-        <p class="lead text-secondary">Карты, арты и визуальные материалы</p>
+        <p class="lead text-secondary">Изображения и визуальные материалы</p>
         <hr class="border-warning">
     </div>
 </div>
 
 {% if images %}
-    <!-- Фильтры галереи -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-white">
-            <h5 class="mb-0 text-dark"><i class="bi bi-funnel"></i> Фильтры</h5>
-        </div>
-        <div class="card-body">
-            <div class="btn-group flex-wrap" role="group">
-                <button class="btn btn-outline-secondary filter-btn active" data-filter="all">Все</button>
-                <button class="btn btn-outline-secondary filter-btn" data-filter="map">Карты</button>
-                <button class="btn btn-outline-secondary filter-btn" data-filter="art">Арты</button>
-                <button class="btn btn-outline-secondary filter-btn" data-filter="npc">NPC</button>
-                <button class="btn btn-outline-secondary filter-btn" data-filter="location">Локации</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Галерея изображений -->
     <div class="row" id="galleryGrid">
         {% for image in images %}
@@ -47,13 +31,6 @@
                 <div class="card-body bg-white">
                     <h6 class="cinzel text-dark mb-1">{{ image.title }}</h6>
                     <p class="small text-secondary">{{ image.description[:80] }}{% if image.description|length > 80 %}...{% endif %}</p>
-                    <span class="badge bg-secondary">
-                        {% if image.category == 'map' %}🗺️ Карта
-                        {% elif image.category == 'art' %}🎨 Арт
-                        {% elif image.category == 'npc' %}👤 NPC
-                        {% elif image.category == 'location' %}📍 Локация
-                        {% else %}📷 Изображение{% endif %}
-                    </span>
                 </div>
                 {% if current_user.is_authenticated %}
                 <div class="card-footer bg-white border-top">
@@ -149,46 +126,13 @@
 .gallery-image-container:hover .gallery-overlay {
     opacity: 1;
 }
-
-.filter-btn {
-    margin: 0 4px;
-}
-
-.filter-btn.active {
-    background-color: #ffc107;
-    color: #000;
-    border-color: #ffc107;
-}
 </style>
 {% endblock %}
 
 {% block scripts %}
 <script>
-// Фильтрация галереи
+// Просмотр изображений
 document.addEventListener('DOMContentLoaded', function() {
-    var filterBtns = document.querySelectorAll('.filter-btn');
-    var galleryItems = document.querySelectorAll('.gallery-item');
-    
-    filterBtns.forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var filter = this.getAttribute('data-filter');
-            
-            // Обновляем активную кнопку
-            filterBtns.forEach(function(b) { b.classList.remove('active'); });
-            this.classList.add('active');
-            
-            // Фильтруем элементы
-            galleryItems.forEach(function(item) {
-                if (filter === 'all' || item.getAttribute('data-category') === filter) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        });
-    });
-    
-    // Просмотр изображений
     var viewBtns = document.querySelectorAll('.view-image');
     viewBtns.forEach(function(btn) {
         btn.addEventListener('click', function() {
