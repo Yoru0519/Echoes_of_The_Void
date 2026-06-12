@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Управление музыкой{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="cinzel text-dark">Управление музыкой</h1>
+    <a href="{{ url_for('add_music_track') }}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Добавить трек
+    </a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0 text-dark"><i class="bi bi-info-circle"></i> Инструкция</h5>
+    </div>
+    <div class="card-body bg-white">
+        <p class="text-dark mb-0">
+            <i class="bi bi-arrow-right"></i> Положите MP3-файлы в папку <code>static/music/</code><br>
+            <i class="bi bi-arrow-right"></i> При добавлении трека укажите путь: <code>/static/music/название-файла.mp3</code><br>
+            <i class="bi bi-arrow-right"></i> Или используйте прямые ссылки на внешние файлы
+        </p>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Тема</th>
+                <th>Описание</th>
+                <th>Порядок</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for track in tracks %}
+            <tr>
+                <td>{{ track.id }}</td>
+                <td><strong>{{ track.title }}</strong></td>
+                <td><span class="badge bg-info">{{ track.character_theme }}</span></td>
+                <td>{{ track.description[:50] }}{% if track.description|length > 50 %}...{% endif %}</td>
+                <td style="width: 150px;">
+                    <form method="POST" action="{{ url_for('edit_music_track', id=track.id) }}" class="d-flex gap-2">
+                        <input type="number" name="sort_order" value="{{ track.sort_order }}" 
+                                style="width: 70px;" class="form-control form-control-sm" 
+                                min="0" max="100" step="1">
+                        <input type="hidden" name="title" value="{{ track.title }}">
+                        <input type="hidden" name="description" value="{{ track.description }}">
+                        <input type="hidden" name="character_theme" value="{{ track.character_theme }}">
+                        <input type="hidden" name="audio_url" value="{{ track.audio_url }}">
+                        <input type="hidden" name="cover_url" value="{{ track.cover_url or '' }}">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-save"></i>
+                        </button>
+                    </form>
+                </td>
+                <td style="width: 120px;">
+                    <a href="{{ url_for('edit_music_track', id=track.id) }}" class="btn btn-sm btn-warning">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{{ url_for('delete_music_track', id=track.id) }}" class="btn btn-sm btn-danger"
+                        onclick="return confirm('Удалить трек «{{ track.title }}»?')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if not tracks %}
+<div class="alert alert-info text-center">
+    <i class="bi bi-music-note-beamed fs-1"></i>
+    <h5>Треков пока нет</h5>
+    <p>Нажмите кнопку "Добавить трек", чтобы начать.</p>
+</div>
+{% endif %}
+{% endblock %}

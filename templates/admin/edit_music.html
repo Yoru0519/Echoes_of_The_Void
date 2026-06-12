@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}{% if track %}Редактировать{% else %}Добавить{% endif %} трек{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h4 class="cinzel mb-0 text-dark">
+                    {% if track %}Редактирование{% else %}Новый{% endif %} трек
+                </h4>
+            </div>
+            <div class="card-body bg-white">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Название трека *</label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                                value="{{ track.title if track else '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="character_theme" class="form-label">Тема персонажа *</label>
+                        <input type="text" class="form-control" id="character_theme" name="character_theme" 
+                                value="{{ track.character_theme if track else '' }}" 
+                                placeholder="Например: Тема Тордека, Тема Каллисты" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ track.description if track else '' }}</textarea>
+                        <div class="form-text">Краткое описание трека или сцены, где он звучит</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="audio_url" class="form-label">Ссылка на аудиофайл *</label>
+                        <input type="text" class="form-control" id="audio_url" name="audio_url" 
+                                value="{{ track.audio_url if track else '' }}" 
+                                placeholder="/static/music/track.mp3 или https://example.com/track.mp3" required>
+                        <div class="form-text">Положите MP3 в <code>static/music/</code> и укажите путь: <code>/static/music/название.mp3</code></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cover_url" class="form-label">Ссылка на обложку (опционально)</label>
+                        <input type="text" class="form-control" id="cover_url" name="cover_url" 
+                                value="{{ track.cover_url if track else '' }}" 
+                                placeholder="/static/images/cover.jpg">
+                        <div class="form-text">Изображение для пластинки (квадратное, рекомендуется 300x300)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="sort_order" class="form-label">Порядок сортировки</label>
+                        <input type="number" class="form-control" id="sort_order" name="sort_order" 
+                                value="{{ track.sort_order if track else 0 }}" min="0" max="100">
+                        <div class="form-text">Меньше число = выше в списке</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Сохранить
+                        </button>
+                        <a href="{{ url_for('admin_music') }}" class="btn btn-secondary">
+                            Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
