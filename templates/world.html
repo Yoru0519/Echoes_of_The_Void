@@ -14,7 +14,7 @@
 <div class="row">
     <div class="col-12 col-lg-8">
         <div class="accordion" id="worldAccordion">
-            {% for article in articles %}
+            {% for article in articles|sort(attribute='sort_order') %}
             <div class="accordion-item border-0 shadow-sm mb-3">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed bg-white text-dark" type="button" 
@@ -28,8 +28,6 @@
                 <div id="collapse{{ article.id }}" class="accordion-collapse collapse" 
                     data-bs-parent="#worldAccordion">
                     <div class="accordion-body bg-white">
-                        <!-- ЗДЕСЬ БЫЛО {{ article.content|safe }} -->
-                        <!-- А ТЕПЕРЬ ЗДЕСЬ ЭТА СТРОКА: -->
                         <div class="article-content">
                             {{ article.content|markdown|safe }}
                         </div>
@@ -47,7 +45,6 @@
     </div>
     
     <div class="col-12 col-lg-4">
-        <!-- Хронология -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white border-bottom">
                 <h5 class="mb-0 text-dark cinzel"><i class="bi bi-hourglass-split"></i> Хронология</h5>
@@ -137,7 +134,6 @@
     border-color: #ffc107;
 }
 
-/* Стили для форматирования текста статей */
 .article-content {
     font-family: 'Roboto Slab', serif;
     line-height: 1.8;
@@ -147,7 +143,7 @@
 
 .article-content p {
     margin-bottom: 1.2rem;
-    text-indent: 2em;  /* Красная строка */
+    text-indent: 2em;
 }
 
 .article-content h1 {

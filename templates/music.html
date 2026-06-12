@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}Музыкальная комната{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="cinzel text-dark">Музыкальная комната</h1>
+        <p class="lead text-secondary">Саундтреки и музыкальные темы персонажей</p>
+        <hr class="border-warning">
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-body bg-white">
+                <div class="row">
+                    <!-- Обложка -->
+                    <div class="col-md-3 text-center" style="margin-top: -40px;">
+                        <div class="album-cover" style="width: 250px; height: 250px; margin: 0 auto; border-radius: 12px; background: linear-gradient(135deg, #2c3e50, #1a1a2e); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                            <div id="defaultCover" style="display: flex;">
+                                <i class="bi bi-vinyl-fill" style="font-size: 60px; color: #ffc107;"></i>
+                            </div>
+                            <img id="coverImg" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                        </div>
+                    </div>
+                    
+                    <!-- Информация о треке и управление -->
+                    <div class="col-md-9">
+                        <div class="now-playing">
+                            <div class="track-title" id="nowPlayingTitle" style="font-size: 1.3rem; font-weight: bold; font-family: 'Cinzel', serif;">Выберите трек</div>
+                            <div class="track-artist" id="nowPlayingTheme" style="color: #6c757d;">—</div>
+                        </div>
+                        
+                        <!-- Прогресс-бар -->
+                        <div class="progress-container mt-3">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #6c757d; margin-bottom: 5px;">
+                                <span id="currentTime">0:00</span>
+                                <span id="duration">0:00</span>
+                            </div>
+                            <div id="progressBarContainer" style="height: 6px; background: #e9ecef; border-radius: 3px; cursor: pointer;">
+                                <div id="progressFill" style="width: 0%; height: 100%; background: #ffc107; border-radius: 3px;"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Кнопки управления -->
+                        <div style="display: flex; align-items: center; gap: 15px; margin-top: 15px;">
+                            <button id="shuffleBtn" style="background: none; border: none; font-size: 1.2rem;">
+                                <i class="bi bi-shuffle"></i>
+                            </button>
+                            <button id="prevBtn" style="background: none; border: none; font-size: 1.2rem;">
+                                <i class="bi bi-skip-backward-fill"></i>
+                            </button>
+                            <button id="playPauseBtn" style="background: #ffc107; border: none; width: 45px; height: 45px; border-radius: 50%;">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                            <button id="nextBtn" style="background: none; border: none; font-size: 1.2rem;">
+                                <i class="bi bi-skip-forward-fill"></i>
+                            </button>
+                            <button id="repeatBtn" style="background: none; border: none; font-size: 1.2rem;">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Громкость -->
+                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px;">
+                            <i class="bi bi-volume-down"></i>
+                            <input type="range" id="volumeSlider" min="0" max="100" value="70" style="width: 100px;">
+                            <i class="bi bi-volume-up"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Плейлист -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="mb-0 text-dark cinzel"><i class="bi bi-music-note-list"></i> Плейлист</h5>
+            </div>
+            <div class="card-body bg-white p-0">
+                <div class="list-group list-group-flush">
+                    {% for track in tracks %}
+                    <button class="list-group-item list-group-item-action track-item" 
+                            data-track-id="{{ track.id }}"
+                            data-track-title="{{ track.title }}"
+                            data-track-theme="{{ track.character_theme }}"
+                            data-track-url="{{ track.audio_url }}"
+                            data-track-cover="{{ track.cover_url or '' }}"
+                            style="cursor: pointer;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h6 class="mb-0 text-dark">{{ track.title }}</h6>
+                                <small class="text-muted">{{ track.character_theme }}</small>
+                            </div>
+                            <i class="bi bi-play-circle text-warning"></i>
+                        </div>
+                        <p class="small text-secondary mt-2 mb-0">{{ track.description }}</p>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not tracks %}
+<div class="alert alert-info text-center mt-4">
+    <i class="bi bi-music-note-beamed fs-1"></i>
+    <h5>Плейлист пока пуст</h5>
+    <p>Мастер добавит музыкальные треки через админ-панель.</p>
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('add_music_track') }}" class="btn btn-warning mt-2">Добавить трек</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if current_user.is_authenticated %}
+<div class="position-fixed bottom-0 end-0 m-4" style="z-index: 1000;">
+    <a href="{{ url_for('add_music_track') }}" class="btn btn-warning btn-lg rounded-circle shadow-lg">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+</div>
+{% endif %}
+
+<audio id="audioPlayer" style="display: none;"></audio>
+
+<script>
+    let playlist = [];
+    let currentTrackIndex = -1;
+    let isPlaying = false;
+    let isShuffle = false;
+    let isRepeat = false;
+    
+    const audio = document.getElementById('audioPlayer');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const repeatBtn = document.getElementById('repeatBtn');
+    const progressBar = document.getElementById('progressBarContainer');
+    const progressFill = document.getElementById('progressFill');
+    const currentTimeSpan = document.getElementById('currentTime');
+    const durationSpan = document.getElementById('duration');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const nowPlayingTitle = document.getElementById('nowPlayingTitle');
+    const nowPlayingTheme = document.getElementById('nowPlayingTheme');
+    const coverImg = document.getElementById('coverImg');
+    const defaultCover = document.getElementById('defaultCover');
+    
+    // Сбор плейлиста
+    document.querySelectorAll('.track-item').forEach((item) => {
+        playlist.push({
+            id: item.getAttribute('data-track-id'),
+            title: item.getAttribute('data-track-title'),
+            theme: item.getAttribute('data-track-theme'),
+            url: item.getAttribute('data-track-url'),
+            cover: item.getAttribute('data-track-cover'),
+            element: item
+        });
+    });
+    
+    function formatTime(seconds) {
+        if (isNaN(seconds)) return '0:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return mins + ':' + (secs < 10 ? '0' + secs : secs);
+    }
+    
+    function updateCover(coverUrl) {
+        if (coverUrl && coverUrl !== '') {
+            coverImg.src = coverUrl;
+            coverImg.style.display = 'block';
+            defaultCover.style.display = 'none';
+        } else {
+            coverImg.style.display = 'none';
+            defaultCover.style.display = 'flex';
+        }
+    }
+    
+    function loadTrack(index) {
+        if (index < 0 || index >= playlist.length) return;
+        
+        currentTrackIndex = index;
+        const track = playlist[currentTrackIndex];
+        
+        audio.src = track.url;
+        audio.load();
+        
+        nowPlayingTitle.textContent = track.title;
+        nowPlayingTheme.textContent = track.theme;
+        updateCover(track.cover);
+        
+        playlist.forEach(t => t.element.classList.remove('active'));
+        track.element.classList.add('active');
+        
+        progressFill.style.width = '0%';
+        currentTimeSpan.textContent = '0:00';
+        
+        audio.addEventListener('loadedmetadata', function onLoaded() {
+            durationSpan.textContent = formatTime(audio.duration);
+            audio.removeEventListener('loadedmetadata', onLoaded);
+        });
+    }
+    
+    function play() {
+        audio.play();
+        isPlaying = true;
+        playPauseBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
+    }
+    
+    function pause() {
+        audio.pause();
+        isPlaying = false;
+        playPauseBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+    }
+    
+    function nextTrack() {
+        if (playlist.length === 0) return;
+        
+        let nextIndex;
+        if (isShuffle) {
+            do {
+                nextIndex = Math.floor(Math.random() * playlist.length);
+            } while (nextIndex === currentTrackIndex && playlist.length > 1);
+        } else {
+            nextIndex = (currentTrackIndex + 1) % playlist.length;
+        }
+        
+        loadTrack(nextIndex);
+        play();
+    }
+    
+    function prevTrack() {
+        if (playlist.length === 0) return;
+        let prevIndex = currentTrackIndex - 1;
+        if (prevIndex < 0) prevIndex = playlist.length - 1;
+        loadTrack(prevIndex);
+        play();
+    }
+    
+    // Обновление прогресса
+    function updateProgress() {
+        if (audio.duration && !isNaN(audio.duration)) {
+            const percent = (audio.currentTime / audio.duration) * 100;
+            progressFill.style.width = percent + '%';
+            currentTimeSpan.textContent = formatTime(audio.currentTime);
+        }
+    }
+    
+    audio.addEventListener('timeupdate', updateProgress);
+    audio.addEventListener('ended', () => {
+        if (isRepeat) {
+            audio.currentTime = 0;
+            play();
+        } else {
+            nextTrack();
+        }
+    });
+    
+    // Перемотка
+    progressBar.addEventListener('click', function(e) {
+        const rect = this.getBoundingClientRect();
+        const percent = (e.clientX - rect.left) / rect.width;
+        audio.currentTime = percent * audio.duration;
+    });
+    
+    // Кнопки
+    playPauseBtn.addEventListener('click', () => {
+        if (currentTrackIndex === -1 && playlist.length > 0) {
+            loadTrack(0);
+            play();
+        } else if (isPlaying) {
+            pause();
+        } else {
+            play();
+        }
+    });
+    
+    nextBtn.addEventListener('click', nextTrack);
+    prevBtn.addEventListener('click', prevTrack);
+    
+    shuffleBtn.addEventListener('click', () => {
+        isShuffle = !isShuffle;
+        shuffleBtn.style.color = isShuffle ? '#ffc107' : '';
+    });
+    
+    repeatBtn.addEventListener('click', () => {
+        isRepeat = !isRepeat;
+        repeatBtn.style.color = isRepeat ? '#ffc107' : '';
+    });
+    
+    volumeSlider.addEventListener('input', (e) => {
+        audio.volume = e.target.value / 100;
+    });
+    audio.volume = 0.7;
+    
+    // Клик по треку
+    playlist.forEach((track, index) => {
+        track.element.addEventListener('click', () => {
+            if (currentTrackIndex === index && isPlaying) {
+                pause();
+            } else {
+                loadTrack(index);
+                play();
+            }
+        });
+    });
+</script>
+{% endblock %}
