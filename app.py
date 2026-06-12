@@ -89,6 +89,16 @@ class GalleryImage(db.Model):
     uploaded_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     sort_order = db.Column(db.Integer, default=0)
 
+class MusicTrack(db.Model):
+    __tablename__ = 'music_tracks'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    character_theme = db.Column(db.String(100))
+    audio_url = db.Column(db.String(500), nullable=False)
+    sort_order = db.Column(db.Integer, default=0)
+    cover_url = db.Column(db.String(500))
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -223,12 +233,15 @@ def admin_dashboard():
     article_count = Article.query.count()
     party_count = PartyMember.query.count()
     image_count = GalleryImage.query.count()
+    music_count = MusicTrack.query.count()
+    
     return render_template('admin/dashboard.html', 
                         npc_count=npc_count,
                         location_count=location_count,
                         article_count=article_count,
                         party_count=party_count,
-                        image_count=image_count)
+                        image_count=image_count,
+                        music_count=music_count)
 
 def save_portrait(file, folder='npcs'):
     if file and file.filename:
@@ -584,6 +597,60 @@ def delete_gallery_image(id):
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 
+# Музыкальные маршруты
+@app.route('/music')
+def music():
+    tracks = MusicTrack.query.order_by(MusicTrack.sort_order, MusicTrack.id).all()
+    return render_template('music.html', tracks=tracks)
+
+@app.route('/admin/music')
+@login_required
+def admin_music():
+    tracks = MusicTrack.query.order_by(MusicTrack.sort_order, MusicTrack.id).all()
+    return render_template('admin/music.html', tracks=tracks)
+
+@app.route('/admin/music/add', methods=['GET', 'POST'])
+@login_required
+def add_music_track():
+    if request.method == 'POST':
+        track = MusicTrack(
+            title=request.form['title'],
+            description=request.form['description'],
+            character_theme=request.form['character_theme'],
+            audio_url=request.form['audio_url'],
+            cover_url=request.form.get('cover_url', ''),
+            sort_order=int(request.form.get('sort_order', 0))
+        )
+        db.session.add(track)
+        db.session.commit()
+        flash('Трек добавлен', 'success')
+        return redirect(url_for('admin_music'))
+    return render_template('admin/edit_music.html', track=None)
+
+@app.route('/admin/music/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_music_track(id):
+    track = MusicTrack.query.get_or_404(id)
+    if request.method == 'POST':
+        track.title = request.form['title']
+        track.description = request.form['description']
+        track.character_theme = request.form['character_theme']
+        track.audio_url = request.form['audio_url']
+        track.cover_url = request.form.get('cover_url', '')
+        track.sort_order = int(request.form.get('sort_order', 0))
+        db.session.commit()
+        flash('Трек обновлен', 'success')
+        return redirect(url_for('admin_music'))
+    return render_template('admin/edit_music.html', track=track)
+
+@app.route('/admin/music/delete/<int:id>')
+@login_required
+def delete_music_track(id):
+    track = MusicTrack.query.get_or_404(id)
+    db.session.delete(track)
+    db.session.commit()
+    flash('Трек удален', 'warning')
+    return redirect(url_for('admin_music'))
 
 # Секретный пользователь (Тифлинг)
 SECRET_USER = {
