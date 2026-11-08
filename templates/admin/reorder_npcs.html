@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Порядок персонажей{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h4 class="cinzel mb-0 text-dark">Порядок персонажей</h4>
+                <a href="{{ url_for('admin_npcs') }}" class="btn btn-sm btn-secondary">Назад</a>
+            </div>
+            <div class="card-body bg-white">
+                <p class="text-muted mb-3">
+                    <i class="bi bi-info-circle"></i> 
+                    Перетаскивайте карточки за иконку <i class="bi bi-grip-vertical"></i>, чтобы изменить порядок. 
+                    После перетаскивания нажмите «Сохранить порядок».
+                </p>
+                <ul id="sortableList" class="list-unstyled">
+                    {% for npc in npcs %}
+                    <li class="d-flex align-items-center bg-light border rounded p-2 mb-2" data-id="{{ npc.id }}">
+                        <i class="bi bi-grip-vertical text-muted me-3" style="cursor: grab; font-size: 1.5rem;"></i>
+                        <img src="{{ npc.portrait_url or '/static/images/placeholders/npc.jpg' }}" 
+                            style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid #ffc107; margin-right: 15px;">
+                        <div>
+                            <strong>{{ npc.name }}</strong>
+                            <span class="text-muted small ms-2">{{ npc.title }}</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <button id="saveOrderBtn" class="btn btn-success mt-3">
+                    <i class="bi bi-save"></i> Сохранить порядок
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+    const list = document.getElementById('sortableList');
+    const saveBtn = document.getElementById('saveOrderBtn');
+    
+    new Sortable(list, {
+        handle: '.bi-grip-vertical',
+        animation: 150,
+        ghostClass: 'bg-warning'
+    });
+    
+    saveBtn.addEventListener('click', function() {
+        const items = list.querySelectorAll('li');
+        const order = [];
+        items.forEach(item => order.push(item.getAttribute('data-id')));
+        
+        fetch('{{ url_for("admin_npcs_reorder") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ order: order })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Порядок сохранён!');
+                window.location.reload();
+            } else {
+                alert('Ошибка при сохранении');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Ошибка при отправке данных');
+        });
+    });
+</script>
+{% endblock %}
