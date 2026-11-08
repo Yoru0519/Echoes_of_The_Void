@@ -43,6 +43,7 @@ class NPC(db.Model):
     image_url = db.Column(db.String(300))
     importance = db.Column(db.Integer, default=1)
     portrait_url = db.Column(db.String(300), default='/static/images/placeholders/npc.jpg')
+    sort_order = db.Column(db.Integer, default=0)
     
 
 class Location(db.Model):
@@ -144,7 +145,7 @@ def world():
 
 @app.route('/npcs')
 def npcs():
-    npc_list = NPC.query.order_by(NPC.importance.desc()).all()
+    npc_list = NPC.query.order_by(NPC.sort_order, NPC.id).all()
     categories = db.session.query(NPC.category).distinct().all()
     races = db.session.query(NPC.race).distinct().all()
     
@@ -326,6 +327,24 @@ def delete_npc(id):
     db.session.commit()
     flash('NPC удален', 'warning')
     return redirect(url_for('admin_npcs'))
+
+@app.route('/admin/npcs/reorder', methods=['GET', 'POST'])
+@login_required
+def admin_npcs_reorder():
+    if request.method == 'POST':
+        # Получаем новый порядок из JSON-запроса (от drag-and-drop)
+        data = request.get_json()
+        if data and 'order' in data:
+            for index, npc_id in enumerate(data['order']):
+                npc = NPC.query.get(npc_id)
+                if npc:
+                    npc.sort_order = index
+            db.session.commit()
+            return jsonify({'success': True})
+        return jsonify({'success': False}), 400
+    
+    npcs = NPC.query.order_by(NPC.sort_order, NPC.id).all()
+    return render_template('admin/reorder_npcs.html', npcs=npcs)
 
 # Маршруты для управления локациями
 @app.route('/admin/locations')
